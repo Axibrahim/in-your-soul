@@ -166,3 +166,9 @@ app/static/videos/hero.mp4
 | `--accent`| `#76ff03` | Primary accent, CTAs, prices |
 | `--danger`| `#ff1744` | Errors, sold-out, alerts     |
 | `--muted` | `#3a4a3a` | Disabled states, borders     |
+
+
+
+
+
+@MADE BY AxIbrahim - 2026
