@@ -37,7 +37,7 @@
                 <input type="radio" name="address_id" value="{{ addr.id }}" {% if addr.is_default %}checked{% endif %} style="margin-top:0.2rem;accent-color:var(--accent);"/>
                 <div>
                   <div style="font-family:var(--font-display);font-size:0.75rem;color:var(--text);margin-bottom:0.35rem;">{{ addr.label.upper() }}</div>
-                  <div style="font-size:0.85rem;color:var(--text-dim);">{{ addr.street }}, {{ addr.city }}, {{ addr.governorate }}</div>
+                  <div style="font-size:0.85rem;color:var(--text-dim);">{{ addr.street }}, {{ addr.district }}, {{ addr.governorate }}</div>
                 </div>
               </label>
               {% endfor %}

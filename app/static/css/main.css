@@ -35,6 +35,9 @@ body {
   line-height: 1.6;
   overflow-x: hidden;
   min-height: 100vh;
+}*
+ {
+    box-sizing: border-box;
 }
 
 /* NOISE */
@@ -170,6 +173,15 @@ a:hover { color: var(--text); }
   transition: var(--transition);
   padding: 0.5rem 0;
   border-bottom: 1px solid var(--border);
+}
+@media(max-width:768px){
+    .nav-links{
+        display:none;
+    }
+
+    .mobile-menu{
+        display:block;
+    }
 }
 .nav-mobile-link:hover { color: var(--accent); }
 
@@ -396,8 +408,8 @@ a:hover { color: var(--text); }
 /* ============================================ PRODUCT GRID */
 .products-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 1.5rem;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1rem;
 }
 
 .product-card {
@@ -675,6 +687,12 @@ a:hover { color: var(--text); }
   align-items: center;
   justify-content: center;
   padding: 8rem 2rem 4rem;
+}
+input,
+select,
+textarea {
+    width: 100%;
+    box-sizing: border-box;
 }
 .form-card {
   width: 100%;
@@ -1212,4 +1230,22 @@ tbody tr:hover { background: var(--panel); }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+}
+html, body {
+    overflow-x: hidden;
+    width: 100%;
+}
+img {
+    max-width: 100%;
+    height: auto;
+    display: block;
+}
+video {
+    max-width: 100%;
+    height: auto;
+}
+.btn,
+button,
+input[type="submit"] {
+    min-height: 48px;
 }
