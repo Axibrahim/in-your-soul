@@ -138,9 +138,8 @@ freks/
 
 ---
 
-## Hero Video
 
-Place video at:
+HomePage Background video at:
 ```
 app/static/videos/hero.mp4
 
