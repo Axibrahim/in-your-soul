@@ -1,3 +1,5 @@
+from datetime import datetime, timedelta
+
 from flask import Blueprint, render_template, redirect, url_for, flash, request, jsonify, session
 from flask_login import login_required, current_user
 from app.models import Product, ProductVariant, Order, OrderItem, Address, db
@@ -133,6 +135,12 @@ def checkout():
 
     if request.method == 'POST':
         payment_method = request.form.get('payment_method', 'cod')
+
+        # Whitelist payment methods
+        if payment_method not in ('cod', 'vodafone_cash', 'instapay'):
+            flash('Invalid payment method.', 'danger')
+            return redirect(url_for('cart.checkout'))
+
         address_id = request.form.get('address_id', type=int)
         notes = request.form.get('notes', '').strip()
 
@@ -175,6 +183,11 @@ def checkout():
             notes=notes
         )
         order.set_shipping_address(addr_data)
+
+        # Set 2-hour payment deadline for online payment methods
+        if payment_method in ('vodafone_cash', 'instapay'):
+            order.payment_deadline = datetime.utcnow() + timedelta(hours=2)
+
         db.session.add(order)
         db.session.flush()
 

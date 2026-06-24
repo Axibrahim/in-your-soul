@@ -100,20 +100,21 @@
         </div>
         {% endif %}
 
-        {% if order.payment_method == 'vodafone_cash' %}
-        <div style="border-top:1px solid var(--border);margin-top:1.25rem;padding-top:1.25rem;background:rgba(118,255,3,0.05);padding:1rem;border:1px solid rgba(118,255,3,0.2);border-radius:2px;">
-          <div style="font-family:var(--font-display);font-size:0.65rem;letter-spacing:0.15em;color:var(--accent);margin-bottom:0.5rem;">VODAFONE CASH DETAILS</div>
-          <div style="font-size:0.85rem;color:var(--text);">Transfer <strong>{{ "%.0f"|format(order.total) }} EGP</strong> to:</div>
-          <div style="font-family:var(--font-display);font-size:1.1rem;color:var(--accent);margin:0.5rem 0;letter-spacing:0.1em;">01557793954</div>
-          <div style="font-size:0.78rem;color:var(--text-dim);">Send payment screenshot to confirm your order.</div>
-        </div>
-        {% elif order.payment_method == 'instapay' %}
-        <div style="border-top:1px solid var(--border);margin-top:1.25rem;padding-top:1.25rem;background:rgba(118,255,3,0.05);padding:1rem;border:1px solid rgba(118,255,3,0.2);border-radius:2px;">
-          <div style="font-family:var(--font-display);font-size:0.65rem;letter-spacing:0.15em;color:var(--accent);margin-bottom:0.5rem;">INSTAPAY DETAILS</div>
-          <div style="font-size:0.85rem;color:var(--text);">Send <strong>{{ "%.0f"|format(order.total) }} EGP</strong> via InstaPay and share your receipt.</div>
-        </div>
-        {% endif %}
-      </div>
+        {% if order.payment_method in ('vodafone_cash', 'instapay') and order.payment_status == 'unpaid' %}
+        {% if order.payment_deadline %}
+        <div style="border:1px solid var(--danger);padding:1rem;margin-top:1rem;background:rgba(255,23,68,0.05);">
+      <div style="font-family:var(--font-display);font-size:0.65rem;letter-spacing:0.15em;color:var(--danger);margin-bottom:0.5rem;">⚠ PAYMENT DEADLINE</div>
+      <div style="font-size:0.85rem;">Complete your transfer before <strong>{{ order.payment_deadline.strftime('%d %b %Y at %H:%M') }}</strong> or your order will be automatically cancelled.</div>
+    </div>
+  {% endif %}
+{% endif %}
+
+<div style="border-top:1px solid var(--border);margin-top:1.25rem;padding-top:1.25rem;">
+  <div style="font-family:var(--font-display);font-size:0.65rem;letter-spacing:0.15em;color:var(--accent);margin-bottom:0.5rem;">14-DAY REFUND POLICY</div>
+  <div style="font-size:0.82rem;color:var(--text-dim);line-height:1.7;">
+    You may request a refund within 14 days of delivery. Item must be unworn and in original condition. Contact us to initiate a return.
+  </div>
+</div>
 
       <a href="{{ url_for('main.shop') }}" class="btn btn--ghost btn--full" style="margin-top:1rem;"><span>CONTINUE SHOPPING</span></a>
     </div>

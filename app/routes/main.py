@@ -1,11 +1,15 @@
 from flask import Blueprint, render_template, request, jsonify, session
 from app.models import Product, Category, db
+from datetime import datetime
 
 main_bp = Blueprint('main', __name__)
 
 
+
+
 @main_bp.route('/')
 def index():
+    cancel_expired_orders()  # Cancel expired orders before rendering the homepage
     featured = Product.query.filter_by(is_featured=True, is_active=True).limit(6).all()
     all_products = Product.query.filter_by(is_active=True).order_by(Product.created_at.desc()).limit(12).all()
     categories = Category.query.all()
@@ -75,3 +79,22 @@ def api_products():
         'image_url': p.image_url,
         'stock': p.get_total_stock()
     } for p in products])
+
+
+
+def cancel_expired_orders():
+    from app.models import Order, ProductVariant
+    expired = Order.query.filter(
+        Order.payment_method.in_(['vodafone_cash', 'instapay']),
+        Order.payment_status == 'unpaid',
+        Order.status == 'pending',
+        Order.payment_deadline < datetime.utcnow()
+    ).all()
+    for order in expired:
+        order.status = 'cancelled'
+        for item in order.items:
+            variant = ProductVariant.query.get(item.variant_id)
+            if variant:
+                variant.stock += item.quantity
+    if expired:
+        db.session.commit()

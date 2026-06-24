@@ -1,6 +1,6 @@
 from app import db, login_manager, bcrypt
 from flask_login import UserMixin
-from datetime import datetime
+from datetime import datetime, timedelta
 import json
 
 
@@ -97,6 +97,7 @@ class Order(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     status = db.Column(db.String(50), default='pending')  # pending, confirmed, shipped, delivered, cancelled
     payment_method = db.Column(db.String(50), nullable=False)  # cod, vodafone_cash, instapay
+    payment_deadline = db.Column(db.DateTime, nullable=True)
     payment_status = db.Column(db.String(50), default='unpaid')
     subtotal = db.Column(db.Float, default=0)
     shipping_cost = db.Column(db.Float, default=0)

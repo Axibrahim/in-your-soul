@@ -34,10 +34,6 @@
       <div class="stat-label">PENDING</div>
       <div class="stat-value">{{ orders|selectattr('status','equalto','pending')|list|length }}</div>
     </div>
-    <div class="stat-card">
-      <div class="stat-label">TOTAL SPENT</div>
-      <div class="stat-value" style="font-size:1.4rem;">{{ "%.0f"|format(orders|sum(attribute='total')) }} <span style="font-size:0.8rem;color:var(--text-dim);">EGP</span></div>
-    </div>
   </div>
 
   <!-- RECENT ORDERS -->
