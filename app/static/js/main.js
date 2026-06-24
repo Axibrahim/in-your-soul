@@ -1,0 +1,353 @@
+/* ============================================
+   FREKS — JUNGLE SYSTEM JS
+   ============================================ */
+
+// ── NAV SCROLL EFFECT ──────────────────────────
+const navbar = document.getElementById('navbar');
+if (navbar) {
+  window.addEventListener('scroll', () => {
+    navbar.classList.toggle('scrolled', window.scrollY > 50);
+  }, { passive: true });
+}
+
+// ── MOBILE BURGER ──────────────────────────────
+const burger = document.getElementById('burger');
+const mobileMenu = document.getElementById('mobile-menu');
+if (burger && mobileMenu) {
+  burger.addEventListener('click', () => {
+    burger.classList.toggle('active');
+    mobileMenu.classList.toggle('open');
+  });
+}
+
+// ── CART COUNT ─────────────────────────────────
+async function updateCartCount() {
+  try {
+    const res = await fetch('/cart/count');
+    const data = await res.json();
+    const badge = document.getElementById('cart-badge');
+    if (badge) {
+      badge.textContent = data.count;
+      badge.classList.toggle('zero', data.count === 0);
+    }
+  } catch (e) {}
+}
+updateCartCount();
+
+// ── AUTO-DISMISS FLASH ─────────────────────────
+setTimeout(() => {
+  document.querySelectorAll('.flash').forEach(el => {
+    el.style.transition = 'opacity 0.5s, transform 0.5s';
+    el.style.opacity = '0';
+    el.style.transform = 'translateX(100%)';
+    setTimeout(() => el.remove(), 500);
+  });
+}, 4000);
+
+// ── SCROLL REVEAL ──────────────────────────────
+const revealObserver = new IntersectionObserver((entries) => {
+  entries.forEach((entry, i) => {
+    if (entry.isIntersecting) {
+      setTimeout(() => entry.target.classList.add('visible'), i * 80);
+      revealObserver.unobserve(entry.target);
+    }
+  });
+}, { threshold: 0.1 });
+
+document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
+
+// ── CYBER RAIN CANVAS (Matrix / hero bg) ───────
+function initCyberRain(canvasId) {
+  const canvas = document.getElementById(canvasId);
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+
+  function resize() {
+    canvas.width = canvas.offsetWidth;
+    canvas.height = canvas.offsetHeight;
+  }
+  resize();
+  window.addEventListener('resize', resize, { passive: true });
+
+  const chars = 'ΔΣΩΨΦΞΛΘαβγδεζηθιKΠΠΡΣΤΥΦΧΨΩ01'.split('');
+  const fontSize = 13;
+  let cols = Math.floor(canvas.width / fontSize);
+  let drops = Array(cols).fill(1);
+
+  function draw() {
+    ctx.fillStyle = 'rgba(4,8,4,0.05)';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    ctx.font = `${fontSize}px "Space Mono", monospace`;
+
+    drops.forEach((y, i) => {
+      const char = chars[Math.floor(Math.random() * chars.length)];
+      const bright = Math.random() > 0.95;
+      ctx.fillStyle = bright ? '#76ff03' : '#1a3a1a';
+      ctx.fillText(char, i * fontSize, y * fontSize);
+
+      if (y * fontSize > canvas.height && Math.random() > 0.975) {
+        drops[i] = 0;
+      }
+      drops[i]++;
+    });
+  }
+
+  let animId = setInterval(draw, 55);
+
+  // Pause when hidden
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) clearInterval(animId);
+    else animId = setInterval(draw, 55);
+  });
+}
+
+initCyberRain('cyber-canvas');
+
+// ── PRODUCT GALLERY THUMBS ─────────────────────
+document.querySelectorAll('.product-thumb').forEach(thumb => {
+  thumb.addEventListener('click', () => {
+    const src = thumb.dataset.src;
+    const mainImg = document.getElementById('main-product-img');
+    if (mainImg && src) {
+      mainImg.src = src;
+      document.querySelectorAll('.product-thumb').forEach(t => t.classList.remove('active'));
+      thumb.classList.add('active');
+    }
+  });
+});
+
+// ── SIZE SELECTOR ──────────────────────────────
+document.querySelectorAll('.size-btn').forEach(btn => {
+  if (btn.disabled) return;
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.size-btn').forEach(b => b.classList.remove('selected'));
+    btn.classList.add('selected');
+    const sizeInput = document.getElementById('selected-size');
+    if (sizeInput) sizeInput.value = btn.dataset.size;
+  });
+});
+
+// ── ADD TO CART ────────────────────────────────
+const addToCartForm = document.getElementById('add-to-cart-form');
+if (addToCartForm) {
+  addToCartForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const sizeInput = document.getElementById('selected-size');
+    if (!sizeInput?.value) {
+      showToast('Please select a size.', 'danger');
+      return;
+    }
+
+    const btn = addToCartForm.querySelector('[type="submit"]');
+    btn.disabled = true;
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '<span>ADDING...</span>';
+
+    try {
+      const formData = new FormData(addToCartForm);
+      const res = await fetch('/cart/add', { method: 'POST', body: formData });
+      const data = await res.json();
+
+      if (data.success) {
+        showToast(data.message, 'success');
+        updateCartCount();
+        btn.innerHTML = '<span>ADDED ✓</span>';
+        setTimeout(() => { btn.innerHTML = originalText; btn.disabled = false; }, 2000);
+      } else {
+        showToast(data.message, 'danger');
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+      }
+    } catch {
+      showToast('Something went wrong.', 'danger');
+      btn.innerHTML = originalText;
+      btn.disabled = false;
+    }
+  });
+}
+
+// ── TOAST ──────────────────────────────────────
+function showToast(message, type = 'success') {
+  const container = document.getElementById('flash-container') || (() => {
+    const el = document.createElement('div');
+    el.id = 'flash-container';
+    el.className = 'flash-container';
+    document.body.appendChild(el);
+    return el;
+  })();
+
+  const flash = document.createElement('div');
+  flash.className = `flash flash--${type}`;
+  flash.innerHTML = `<span>${message}</span><button onclick="this.parentElement.remove()">✕</button>`;
+  container.appendChild(flash);
+
+  setTimeout(() => {
+    flash.style.opacity = '0';
+    flash.style.transform = 'translateX(100%)';
+    flash.style.transition = 'opacity 0.4s, transform 0.4s';
+    setTimeout(() => flash.remove(), 400);
+  }, 3000);
+}
+
+// ── ADMIN PRODUCT TOGGLE ───────────────────────
+document.querySelectorAll('.toggle-product-btn').forEach(btn => {
+  btn.addEventListener('click', async () => {
+    const productId = btn.dataset.id;
+    try {
+      const res = await fetch(`/admin/products/${productId}/toggle`, { method: 'POST' });
+      const data = await res.json();
+      if (data.success) {
+        const badge = btn.closest('tr').querySelector('.product-status-badge');
+        if (badge) {
+          badge.textContent = data.is_active ? 'ACTIVE' : 'INACTIVE';
+          badge.className = `badge ${data.is_active ? 'badge--success' : 'badge--muted'} product-status-badge`;
+        }
+        btn.textContent = data.is_active ? 'Deactivate' : 'Activate';
+        showToast(`Product ${data.is_active ? 'activated' : 'deactivated'}.`);
+      }
+    } catch {
+      showToast('Failed to update product.', 'danger');
+    }
+  });
+});
+
+// ── ADMIN USER TOGGLE ──────────────────────────
+document.querySelectorAll('.toggle-admin-btn').forEach(btn => {
+  btn.addEventListener('click', async () => {
+    const userId = btn.dataset.id;
+    try {
+      const res = await fetch(`/admin/users/${userId}/toggle-admin`, { method: 'POST' });
+      const data = await res.json();
+      if (data.success) {
+        btn.textContent = data.is_admin ? 'Remove Admin' : 'Make Admin';
+        showToast('User role updated.');
+      }
+    } catch {
+      showToast('Failed to update user.', 'danger');
+    }
+  });
+});
+
+// ── SET DEFAULT ADDRESS ────────────────────────
+document.querySelectorAll('.set-default-btn').forEach(btn => {
+  btn.addEventListener('click', async () => {
+    const addrId = btn.dataset.id;
+    try {
+      const res = await fetch(`/account/addresses/${addrId}/set-default`, { method: 'POST' });
+      const data = await res.json();
+      if (data.success) {
+        document.querySelectorAll('.default-badge').forEach(b => b.remove());
+        btn.insertAdjacentHTML('beforebegin', '<span class="badge badge--success default-badge">DEFAULT</span>');
+        showToast('Default address updated.');
+      }
+    } catch {
+      showToast('Failed to update.', 'danger');
+    }
+  });
+});
+
+// ── PRODUCT CARD PULSE EFFECT ──────────────────
+document.querySelectorAll('.product-card').forEach((card, i) => {
+  // Staggered entrance
+  card.style.animationDelay = `${i * 0.05}s`;
+
+  // Alive hover glow pulse
+  card.addEventListener('mouseenter', () => {
+    card.style.boxShadow = '0 0 30px rgba(118,255,3,0.2), 0 0 80px rgba(118,255,3,0.05)';
+  });
+  card.addEventListener('mouseleave', () => {
+    card.style.boxShadow = '';
+  });
+});
+
+// ── SMOOTH ANCHOR SCROLL ───────────────────────
+document.querySelectorAll('a[href^="#"]').forEach(link => {
+  link.addEventListener('click', e => {
+    const target = document.querySelector(link.getAttribute('href'));
+    if (target) {
+      e.preventDefault();
+      target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  });
+});
+
+// ── CHECKOUT ADDRESS TOGGLE ────────────────────
+const savedAddressRadio = document.getElementById('use-saved-address');
+const newAddressRadio = document.getElementById('use-new-address');
+const savedSection = document.getElementById('saved-address-section');
+const newSection = document.getElementById('new-address-section');
+
+if (savedAddressRadio && newAddressRadio) {
+  savedAddressRadio.addEventListener('change', () => {
+    if (savedSection) savedSection.style.display = '';
+    if (newSection) newSection.style.display = 'none';
+  });
+  newAddressRadio.addEventListener('change', () => {
+    if (savedSection) savedSection.style.display = 'none';
+    if (newSection) newSection.style.display = '';
+  });
+}
+
+// ── QUANTITY CONTROLS (cart) ───────────────────
+document.querySelectorAll('.qty-form').forEach(form => {
+  const input = form.querySelector('.qty-value-input');
+  const display = form.querySelector('.qty-value');
+  const minusBtn = form.querySelector('.qty-minus');
+  const plusBtn = form.querySelector('.qty-plus');
+
+  if (!input) return;
+
+  function syncDisplay() {
+    if (display) display.textContent = input.value;
+  }
+
+  minusBtn?.addEventListener('click', () => {
+    const val = parseInt(input.value) - 1;
+    if (val >= 0) { input.value = val; syncDisplay(); form.submit(); }
+  });
+
+  plusBtn?.addEventListener('click', () => {
+    input.value = parseInt(input.value) + 1;
+    syncDisplay();
+    form.submit();
+  });
+});
+
+// ── ADMIN IMAGE PREVIEW ────────────────────────
+document.querySelectorAll('input[type="file"][accept*="image"]').forEach(input => {
+  input.addEventListener('change', () => {
+    const previewId = input.dataset.preview;
+    if (!previewId) return;
+    const preview = document.getElementById(previewId);
+    const file = input.files[0];
+    if (file && preview) {
+      const reader = new FileReader();
+      reader.onload = e => { preview.src = e.target.result; preview.style.display = 'block'; };
+      reader.readAsDataURL(file);
+    }
+  });
+});
+
+// ── LIVING HEARTBEAT (ambient page pulse) ─────
+// Subtle scanline sweep on panels
+let scanPos = -200;
+function scanSweep() {
+  scanPos = (scanPos + 0.3) % (window.innerHeight + 400);
+  const scanLine = document.getElementById('scan-line');
+  if (scanLine) scanLine.style.top = `${scanPos}px`;
+  requestAnimationFrame(scanSweep);
+}
+// Only run if reduced-motion not preferred
+if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+  const scanLine = document.createElement('div');
+  scanLine.id = 'scan-line';
+  scanLine.style.cssText = `
+    position: fixed; left: 0; right: 0; height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(118,255,3,0.04), transparent);
+    pointer-events: none; z-index: 9998;
+    mix-blend-mode: screen;
+  `;
+  document.body.appendChild(scanLine);
+  scanSweep();
+}

@@ -1,0 +1,146 @@
+{% extends 'base.html' %}
+{% block title %}Checkout — FREKS{% endblock %}
+
+{% block content %}
+<div style="padding-top:6rem;min-height:100vh;">
+  <div style="max-width:1200px;margin:0 auto;padding:2rem;">
+    <div class="section-eyebrow" style="margin-bottom:1rem;">FINAL STEP</div>
+    <h1 style="font-size:clamp(1.5rem,4vw,2.5rem);margin-bottom:2.5rem;">Checkout</h1>
+
+    <form method="POST" action="{{ url_for('cart.checkout') }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+      
+      <div style="display:grid;grid-template-columns:1fr 380px;gap:2rem;align-items:start;" class="checkout-grid">
+
+        <!-- LEFT -->
+        <div style="display:flex;flex-direction:column;gap:2rem;">
+
+          <!-- SHIPPING ADDRESS -->
+          <div style="background:var(--panel);border:1px solid var(--border);padding:2rem;">
+            <h3 style="font-size:0.75rem;letter-spacing:0.15em;color:var(--text-dim);margin-bottom:1.5rem;">SHIPPING ADDRESS</h3>
+
+            {% if addresses %}
+            <div style="display:flex;flex-direction:column;gap:0.75rem;margin-bottom:1.5rem;">
+              <label style="display:flex;align-items:center;gap:0.75rem;font-family:var(--font-display);font-size:0.7rem;letter-spacing:0.1em;color:var(--text-dim);cursor:pointer;">
+                <input type="radio" name="address_type" value="saved" id="use-saved-address" checked style="accent-color:var(--accent);"/>
+                USE SAVED ADDRESS
+              </label>
+              <label style="display:flex;align-items:center;gap:0.75rem;font-family:var(--font-display);font-size:0.7rem;letter-spacing:0.1em;color:var(--text-dim);cursor:pointer;">
+                <input type="radio" name="address_type" value="new" id="use-new-address" style="accent-color:var(--accent);"/>
+                ENTER NEW ADDRESS
+              </label>
+            </div>
+
+            <div id="saved-address-section">
+              {% for addr in addresses %}
+              <label style="display:flex;align-items:flex-start;gap:1rem;padding:1rem;border:1px solid var(--border);margin-bottom:0.5rem;cursor:pointer;transition:all 0.2s;" class="addr-option">
+                <input type="radio" name="address_id" value="{{ addr.id }}" {% if addr.is_default %}checked{% endif %} style="margin-top:0.2rem;accent-color:var(--accent);"/>
+                <div>
+                  <div style="font-family:var(--font-display);font-size:0.75rem;color:var(--text);margin-bottom:0.35rem;">{{ addr.label.upper() }}</div>
+                  <div style="font-size:0.85rem;color:var(--text-dim);">{{ addr.street }}, {{ addr.city }}, {{ addr.governorate }}</div>
+                </div>
+              </label>
+              {% endfor %}
+            </div>
+            
+            <div id="new-address-section" style="display:none;">
+            {% endif %}
+
+              <div class="field-row">
+                <div class="field">
+                  <label>STREET ADDRESS</label>
+                  <input type="text" name="street" placeholder="123 Street Name"/>
+                </div>
+                <div class="field">
+                  <label>District</label>
+                  <input type="text" name="district" placeholder="District"/>
+                </div>
+              </div>
+              <div class="field">
+                <label>GOVERNORATE</label>
+                <input type="text" name="governorate" placeholder="Governorate"/>
+              </div>
+
+            {% if addresses %}
+            </div>
+            {% endif %}
+          </div>
+
+          <!-- PAYMENT -->
+          <div style="background:var(--panel);border:1px solid var(--border);padding:2rem;">
+            <h3 style="font-size:0.75rem;letter-spacing:0.15em;color:var(--text-dim);margin-bottom:1.5rem;">PAYMENT METHOD</h3>
+            <div class="payment-options">
+              <label class="payment-option">
+                <input type="radio" name="payment_method" value="cod" checked/>
+                <div class="payment-option-info">
+                  <div class="payment-option-name">CASH ON DELIVERY</div>
+                  <div class="payment-option-desc">Pay when your order arrives at your door.</div>
+                </div>
+                <span class="payment-option-icon">💵</span>
+              </label>
+
+              <label class="payment-option">
+                <input type="radio" name="payment_method" value="vodafone_cash"/>
+                <div class="payment-option-info">
+                  <div class="payment-option-name">VODAFONE CASH</div>
+                  <div class="payment-option-desc">Transfer to: 01557793954 — send screenshot to confirm.</div>
+                </div>
+                <span class="payment-option-icon">📱</span>
+              </label>
+
+              <label class="payment-option">
+                <input type="radio" name="payment_method" value="instapay"/>
+                <div class="payment-option-info">
+                  <div class="payment-option-name">INSTAPAY</div>
+                  <div class="payment-option-desc">InstaPay transfer — confirm with receipt.</div>
+                </div>
+                <span class="payment-option-icon">⚡</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- NOTES -->
+          <div style="background:var(--panel);border:1px solid var(--border);padding:2rem;">
+            <h3 style="font-size:0.75rem;letter-spacing:0.15em;color:var(--text-dim);margin-bottom:1rem;">ORDER NOTES (OPTIONAL)</h3>
+            <div class="field" style="margin:0;">
+              <textarea name="notes" placeholder="Any special instructions?"></textarea>
+            </div>
+          </div>
+        </div>
+
+        <!-- ORDER SUMMARY -->
+        <div class="cart-summary" style="position:sticky;top:5rem;">
+          <h3>YOUR ORDER</h3>
+          {% for item in items %}
+          <div class="summary-row">
+            <span style="font-size:0.8rem;">{{ item.product.name }} ({{ item.size }}) ×{{ item.quantity }}</span>
+            <span>{{ "%.0f"|format(item.total) }} EGP</span>
+          </div>
+          {% endfor %}
+          <div class="summary-row" style="border-top:1px solid var(--border);margin-top:0.5rem;padding-top:1rem;">
+            <span>Shipping</span>
+            <span>{{ "%.0f"|format(shipping) }} EGP</span>
+          </div>
+          <div class="summary-row">
+            <span style="font-family:var(--font-display);font-size:0.8rem;letter-spacing:0.1em;">TOTAL</span>
+            <span class="summary-total">{{ "%.0f"|format(grand_total) }} EGP</span>
+          </div>
+
+          <button type="submit" class="btn btn--primary btn--full" style="margin-top:1.5rem;">
+            <span>PLACE ORDER →</span>
+          </button>
+          <a href="{{ url_for('cart.view_cart') }}" class="btn btn--ghost btn--full" style="margin-top:0.75rem;">
+            <span>← BACK TO CART</span>
+          </a>
+        </div>
+
+      </div>
+    </form>
+  </div>
+</div>
+
+<style>
+.addr-option:has(input:checked) { border-color: var(--accent); background: var(--accent-glow); }
+@media(max-width:768px) { .checkout-grid { grid-template-columns: 1fr !important; } }
+</style>
+{% endblock %}

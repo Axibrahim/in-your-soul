@@ -1,0 +1,56 @@
+{% extends 'admin/base.html' %}
+{% block title %}Users{% endblock %}
+{% block page_title %}USERS{% endblock %}
+
+{% block content %}
+<h2 style="font-size:1.25rem;margin-bottom:1.5rem;">All Users <span style="color:var(--text-dim);font-size:0.7em;">({{ users|length }})</span></h2>
+
+<div class="table-wrap" style="background:var(--panel);border:1px solid var(--border);">
+  <table>
+    <thead>
+      <tr>
+        <th>USER</th>
+        <th>EMAIL</th>
+        <th>JOINED</th>
+        <th>ORDERS</th>
+        <th>ROLE</th>
+        <th>ACTIONS</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for user in users %}
+      <tr>
+        <td>
+          <div style="font-family:var(--font-display);font-size:0.8rem;">{{ user.first_name }} {{ user.last_name }}</div>
+          <div style="font-size:0.72rem;color:var(--text-dim);">@{{ user.username }}</div>
+        </td>
+        <td style="font-size:0.82rem;color:var(--text-dim);">{{ user.email }}</td>
+        <td style="font-size:0.82rem;color:var(--text-dim);white-space:nowrap;">{{ user.created_at.strftime('%d %b %Y') }}</td>
+        <td>
+          <span style="font-family:var(--font-display);">{{ user.orders|length }}</span>
+        </td>
+        <td>
+          {% if user.is_admin %}
+          <span class="badge badge--danger">ADMIN</span>
+          {% else %}
+          <span class="badge badge--muted">MEMBER</span>
+          {% endif %}
+        </td>
+        <td>
+          {% if user.id != current_user.id %}
+          <button 
+            class="btn btn--sm {% if user.is_admin %}btn--danger{% else %}btn--ghost{% endif %} toggle-admin-btn"
+            data-id="{{ user.id }}"
+          >
+            <span>{% if user.is_admin %}REMOVE ADMIN{% else %}MAKE ADMIN{% endif %}</span>
+          </button>
+          {% else %}
+          <span style="font-size:0.72rem;color:var(--muted);">You</span>
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

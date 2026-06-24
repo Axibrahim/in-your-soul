@@ -1,0 +1,95 @@
+{% extends 'base.html' %}
+{% block title %}About — FREKS{% endblock %}
+
+{% block content %}
+
+<!-- HERO -->
+<section style="padding:10rem 2rem 6rem; border-bottom:1px solid var(--border); position:relative; overflow:hidden;">
+  <canvas class="cyber-canvas" id="cyber-canvas" style="position:absolute;inset:0;opacity:0.1;z-index:0;"></canvas>
+  <div style="max-width:900px; margin:0 auto; position:relative; z-index:1;">
+    <div class="section-eyebrow" style="margin-bottom:1.5rem;">THE BRAND</div>
+    <h1 class="reveal" style="font-size:clamp(3rem,8vw,6rem); line-height:0.95; margin-bottom:2rem;">
+      Built for<br/>
+      <span style="color:var(--accent);">The Underground.</span>
+    </h1>
+    <p class="reveal" style="font-size:1.1rem; color:var(--text-dim); line-height:1.9; max-width:600px;">
+      FREKS is an Egyptian streetwear label born from the rave floor. Oversized silhouettes,
+      techno-coded aesthetics, limited drops — no restocks, no second chances. 
+      We don't make clothes for the masses. We make them for the underground.
+    </p>
+  </div>
+</section>
+
+<!-- MANIFESTO -->
+<section class="section">
+  <div class="section-inner">
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:6rem; align-items:center;">
+      <div class="reveal">
+        <div class="section-eyebrow">MANIFESTO</div>
+        <h2 style="margin-bottom:1.5rem;">The Future<br/>Wears Oversized.</h2>
+        <p style="color:var(--text-dim); line-height:1.9; margin-bottom:1.25rem;">
+          Cairo has always had an underground. From the basements to the desert raves, 
+          the people who build culture from nothing. FREKS exists to clothe that culture.
+        </p>
+        <p style="color:var(--text-dim); line-height:1.9; margin-bottom:1.25rem;">
+          Inspired by Afterlife's cinematic darkness, Junction 2's raw energy, and the 
+          intimacy of Cairo's growing techno scene — every drop is a statement.
+        </p>
+        <p style="color:var(--text-dim); line-height:1.9;">
+          Wear it to the after-party. Wear it to the airport. Wear it at 6am when the 
+          crowd is still moving. FREKS doesn't have a dress code — it is the dress code.
+        </p>
+      </div>
+
+      <div class="reveal" style="background:var(--panel); border:1px solid var(--border); padding:3rem; position:relative;">
+        <div style="position:absolute; top:-1px; left:2rem; right:2rem; height:2px; background:var(--accent); box-shadow:var(--glow);"></div>
+        {% for stat in [('01', 'OVERSIZED TEES', 'Starting point. The canvas.'), ('02', 'CAIRO BASED', 'Born in Egypt. Built for the world.'), ('03', 'LIMITED DROPS', 'Once it\'s gone — it\'s archived.'), ('04', 'UNDERGROUND CODED', 'Rave. Techno. Afterlife. Always.')] %}
+        <div style="display:flex; gap:1.5rem; padding:1.25rem 0; border-bottom:1px solid var(--border); {% if loop.last %}border-bottom:none;{% endif %} align-items:flex-start;">
+          <span style="font-family:var(--font-display); font-size:0.65rem; color:var(--accent); letter-spacing:0.1em; padding-top:0.2rem;">{{ stat[0] }}</span>
+          <div>
+            <div style="font-family:var(--font-display); font-size:0.8rem; letter-spacing:0.12em; color:var(--text); margin-bottom:0.35rem;">{{ stat[1] }}</div>
+            <div style="font-size:0.85rem; color:var(--text-dim);">{{ stat[2] }}</div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- VALUES -->
+<section class="section" style="background:var(--panel); border-top:1px solid var(--border); border-bottom:1px solid var(--border);">
+  <div class="section-inner">
+    <div class="section-header reveal" style="margin-bottom:3rem;">
+      <div class="section-eyebrow">SYSTEM VALUES</div>
+      <h2>How We Move</h2>
+      <div class="section-divider"></div>
+    </div>
+    <div class="capabilities-grid">
+      {% for v in [
+        ('AUTHENTICITY', 'No hype games. No influencer cash grabs. FREKS comes from inside the scene — not from observing it.'),
+        ('SCARCITY', 'Every drop is final. Limited quantities, no restocks. The archive grows, but each piece stays rare.'),
+        ('QUALITY', 'Premium cotton, oversized cuts that hold their shape wash after wash, set after set.'),
+        ('COMMUNITY', 'Built by ravers, for ravers. Every purchase supports Cairo\'s underground culture staying alive.')
+      ] %}
+      <div class="capability-card reveal">
+        <div class="capability-title">{{ v[0] }}</div>
+        <p class="capability-desc">{{ v[1] }}</p>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section style="padding:8rem 2rem; text-align:center; border-bottom:1px solid var(--border);">
+  <div class="reveal">
+    <div class="section-eyebrow" style="justify-content:center; margin-bottom:1.5rem;">READY?</div>
+    <h2 style="font-size:clamp(2rem,6vw,4rem); margin-bottom:2rem;">
+      Enter the<br/><span style="color:var(--accent);">Jungle System.</span>
+    </h2>
+    <a href="{{ url_for('main.shop') }}" class="btn btn--lg btn--primary"><span>SHOP NOW →</span></a>
+  </div>
+</section>
+
+{% endblock %}

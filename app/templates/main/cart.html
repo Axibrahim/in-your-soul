@@ -1,0 +1,98 @@
+{% extends 'base.html' %}
+{% block title %}Cart — FREKS{% endblock %}
+
+{% block content %}
+<div class="cart-page">
+  <div style="max-width:1200px;margin:0 auto;padding:2rem;">
+    <div class="section-eyebrow" style="margin-bottom:1rem;">YOUR BAG</div>
+    <h1 style="font-size:clamp(1.5rem,4vw,2.5rem);margin-bottom:2rem;">Cart <span style="color:var(--text-dim);font-size:0.6em;">({{ items|length }} items)</span></h1>
+  </div>
+
+  {% if items %}
+  <div class="cart-inner">
+    <!-- ITEMS -->
+    <div>
+      <div class="cart-items">
+        {% for item in items %}
+        <div class="cart-item">
+          <img 
+            src="{{ item.product.image_url or '' }}" 
+            alt="{{ item.product.name }}"
+            class="cart-item-img"
+            onerror="this.style.background='#0a100a';this.src=''"
+          />
+          <div class="cart-item-info">
+            <a href="{{ url_for('main.product_detail', product_id=item.product.id) }}" class="cart-item-name">{{ item.product.name }}</a>
+            <div class="cart-item-size">SIZE: {{ item.size }}</div>
+            <div class="cart-item-price">{{ "%.0f"|format(item.product.price) }} EGP / ea</div>
+
+            <!-- QTY -->
+            <form class="qty-form" method="POST" action="{{ url_for('cart.update_cart') }}" style="margin-top:0.75rem;">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+              <input type="hidden" name="key" value="{{ item.key }}"/>
+              <input type="hidden" name="quantity" class="qty-value-input" value="{{ item.quantity }}"/>
+              <div class="qty-control">
+                <button type="button" class="qty-btn qty-minus">−</button>
+                <span class="qty-value">{{ item.quantity }}</span>
+                <button type="button" class="qty-btn qty-plus">+</button>
+              </div>
+            </form>
+          </div>
+
+          <div style="display:flex;flex-direction:column;align-items:flex-end;gap:1rem;">
+            <div style="font-family:var(--font-display);font-size:1rem;color:var(--accent);">{{ "%.0f"|format(item.total) }} EGP</div>
+            <form method="POST" action="{{ url_for('cart.remove_from_cart') }}">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+              <input type="hidden" name="key" value="{{ item.key }}"/>
+              <button type="submit" class="btn btn--danger btn--sm"><span>REMOVE</span></button>
+            </form>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- SUMMARY -->
+    <div class="cart-summary">
+      <h3>ORDER SUMMARY</h3>
+      <div class="summary-row">
+        <span>Subtotal</span>
+        <span>{{ "%.0f"|format(subtotal) }} EGP</span>
+      </div>
+      <div class="summary-row">
+        <span>Shipping</span>
+        <span>{{ "%.0f"|format(shipping) }} EGP</span>
+      </div>
+      <div class="summary-row" style="border-top:1px solid var(--border);margin-top:0.5rem;padding-top:1rem;">
+        <span style="font-family:var(--font-display);font-size:0.8rem;letter-spacing:0.1em;">TOTAL</span>
+        <span class="summary-total">{{ "%.0f"|format(total) }} EGP</span>
+      </div>
+
+      <div style="margin-top:1.5rem;display:flex;flex-direction:column;gap:0.75rem;">
+        <a href="{{ url_for('cart.checkout') }}" class="btn btn--primary btn--full"><span>CHECKOUT →</span></a>
+        <a href="{{ url_for('main.shop') }}" class="btn btn--ghost btn--full"><span>CONTINUE SHOPPING</span></a>
+      </div>
+
+      <div style="margin-top:1.5rem;border-top:1px solid var(--border);padding-top:1rem;">
+        <div style="font-family:var(--font-display);font-size:0.6rem;letter-spacing:0.15em;color:var(--text-dim);margin-bottom:0.75rem;">WE ACCEPT</div>
+        <div style="display:flex;flex-direction:column;gap:0.4rem;">
+          {% for method in ['Cash on Delivery', 'Vodafone Cash · 01557793954', 'InstaPay'] %}
+          <div style="font-size:0.78rem;color:var(--text-dim);display:flex;align-items:center;gap:0.5rem;">
+            <span style="color:var(--accent)">◆</span> {{ method }}
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {% else %}
+  <div class="empty-state" style="padding:8rem 2rem;">
+    <div class="empty-icon">🛍</div>
+    <h3>YOUR BAG IS EMPTY</h3>
+    <p style="margin-bottom:2rem;">Time to drop something in the cart.</p>
+    <a href="{{ url_for('main.shop') }}" class="btn btn--lg"><span>SHOP NOW</span></a>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

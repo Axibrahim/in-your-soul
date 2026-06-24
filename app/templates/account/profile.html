@@ -1,0 +1,94 @@
+{% extends 'base.html' %}
+{% block title %}Profile — FREKS{% endblock %}
+
+{% block content %}
+<div class="account-layout" style="padding-top:6rem;">
+  <div style="border-bottom:1px solid var(--border); margin-bottom:2rem;">
+    <h1 style="font-size:clamp(1.5rem,4vw,2.5rem); margin-bottom:0.5rem;">My Profile</h1>
+    <div class="account-tabs">
+      <a href="{{ url_for('account.dashboard') }}" class="account-tab">OVERVIEW</a>
+      <a href="{{ url_for('account.orders') }}" class="account-tab">ORDERS</a>
+      <a href="{{ url_for('account.addresses') }}" class="account-tab">ADDRESSES</a>
+      <a href="{{ url_for('account.profile') }}" class="account-tab active">PROFILE</a>
+    </div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:2rem;align-items:start;">
+
+    <!-- PROFILE INFO -->
+    <div style="background:var(--panel);border:1px solid var(--border);padding:2rem;">
+      <div style="font-family:var(--font-display);font-size:0.65rem;letter-spacing:0.2em;color:var(--text-dim);margin-bottom:1.5rem;">PERSONAL INFORMATION</div>
+      <form method="POST" action="{{ url_for('account.profile') }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+        <div class="field-row">
+          <div class="field">
+            <label>FIRST NAME</label>
+            <input type="text" name="first_name" value="{{ current_user.first_name or '' }}" required/>
+          </div>
+          <div class="field">
+            <label>LAST NAME</label>
+            <input type="text" name="last_name" value="{{ current_user.last_name or '' }}" required/>
+          </div>
+        </div>
+        <div class="field">
+          <label>USERNAME</label>
+          <input type="text" value="{{ current_user.username }}" disabled style="opacity:0.5;cursor:not-allowed;"/>
+          <div class="field-note">Username cannot be changed.</div>
+        </div>
+        <div class="field">
+          <label>EMAIL ADDRESS</label>
+          <input type="email" value="{{ current_user.email }}" disabled style="opacity:0.5;cursor:not-allowed;"/>
+          <div class="field-note">Email cannot be changed. Contact support if needed.</div>
+        </div>
+        <div class="field">
+          <label>PHONE NUMBER</label>
+          <input type="text" name="phone" value="{{ current_user.phone or '' }}" placeholder="01xxxxxxxxx"/>
+        </div>
+        <button type="submit" class="btn btn--primary btn--full"><span>SAVE CHANGES</span></button>
+      </form>
+    </div>
+
+    <!-- CHANGE PASSWORD -->
+    <div style="background:var(--panel);border:1px solid var(--border);padding:2rem;">
+      <div style="font-family:var(--font-display);font-size:0.65rem;letter-spacing:0.2em;color:var(--text-dim);margin-bottom:1.5rem;">CHANGE PASSWORD</div>
+      <form method="POST" action="{{ url_for('account.change_password') }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+        <div class="field">
+          <label>CURRENT PASSWORD</label>
+          <input type="password" name="current_password" placeholder="Your current password" required/>
+        </div>
+        <div class="field">
+          <label>NEW PASSWORD</label>
+          <input type="password" name="new_password" placeholder="Min. 8 characters" required/>
+        </div>
+        <div class="field">
+          <label>CONFIRM NEW PASSWORD</label>
+          <input type="password" name="confirm_password" placeholder="Repeat new password" required/>
+        </div>
+        <button type="submit" class="btn btn--full"><span>CHANGE PASSWORD</span></button>
+      </form>
+
+      <!-- ACCOUNT INFO -->
+      <div style="border-top:1px solid var(--border);margin-top:2rem;padding-top:1.5rem;">
+        <div style="font-family:var(--font-display);font-size:0.65rem;letter-spacing:0.2em;color:var(--text-dim);margin-bottom:1rem;">ACCOUNT INFO</div>
+        <div style="display:flex;flex-direction:column;gap:0.75rem;">
+          <div style="display:flex;justify-content:space-between;font-size:0.85rem;">
+            <span style="color:var(--text-dim);">Member since</span>
+            <span>{{ current_user.created_at.strftime('%B %Y') }}</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:0.85rem;">
+            <span style="color:var(--text-dim);">Account type</span>
+            <span>{% if current_user.is_admin %}<span class="badge badge--danger">ADMIN</span>{% else %}<span class="badge badge--success">MEMBER</span>{% endif %}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+@media(max-width:768px){
+  .account-layout > div:last-child { grid-template-columns:1fr !important; }
+}
+</style>
+{% endblock %}

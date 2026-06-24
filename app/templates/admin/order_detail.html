@@ -1,0 +1,131 @@
+{% extends 'admin/base.html' %}
+{% block title %}Order {{ order.order_number }}{% endblock %}
+{% block page_title %}ORDER DETAIL{% endblock %}
+
+{% block content %}
+<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:2rem;flex-wrap:wrap;gap:1rem;">
+  <div>
+    <a href="{{ url_for('admin.orders') }}" style="font-family:var(--font-display);font-size:0.65rem;letter-spacing:0.15em;color:var(--text-dim);display:inline-flex;align-items:center;gap:0.5rem;margin-bottom:1rem;">← ALL ORDERS</a>
+    <h2 style="font-size:1.25rem;margin-bottom:0.25rem;">{{ order.order_number }}</h2>
+    <p style="color:var(--text-dim);font-size:0.85rem;">{{ order.created_at.strftime('%d %B %Y at %H:%M') }}</p>
+  </div>
+  {% set smap = {'pending':'badge--warning','confirmed':'badge--success','shipped':'badge--success','delivered':'badge--success','cancelled':'badge--danger'} %}
+  <span class="badge {{ smap.get(order.status,'badge--muted') }}" style="font-size:0.75rem;padding:0.4rem 1rem;">{{ order.status.upper() }}</span>
+</div>
+
+<div style="display:grid;grid-template-columns:1fr 340px;gap:2rem;align-items:start;">
+
+  <!-- LEFT -->
+  <div style="display:flex;flex-direction:column;gap:1.5rem;">
+
+    <!-- ORDER ITEMS -->
+    <div style="background:var(--panel);border:1px solid var(--border);padding:1.75rem;">
+      <div style="font-family:var(--font-display);font-size:0.65rem;letter-spacing:0.2em;color:var(--text-dim);margin-bottom:1.25rem;">ORDER ITEMS</div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>PRODUCT</th><th>SIZE</th><th>QTY</th><th>UNIT</th><th>TOTAL</th></tr>
+          </thead>
+          <tbody>
+            {% for item in order.items %}
+            <tr>
+              <td>
+                <div style="font-family:var(--font-display);font-size:0.8rem;">{{ item.product_name }}</div>
+                {% if item.product %}
+                <a href="{{ url_for('admin.edit_product', product_id=item.product_id) }}" style="font-size:0.7rem;color:var(--text-dim);">Edit product →</a>
+                {% endif %}
+              </td>
+              <td style="font-family:var(--font-display);font-size:0.85rem;">{{ item.size }}</td>
+              <td>{{ item.quantity }}</td>
+              <td>{{ "%.0f"|format(item.unit_price) }} EGP</td>
+              <td style="font-family:var(--font-display);color:var(--accent);">{{ "%.0f"|format(item.total_price) }} EGP</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- CUSTOMER INFO -->
+    <div style="background:var(--panel);border:1px solid var(--border);padding:1.75rem;">
+      <div style="font-family:var(--font-display);font-size:0.65rem;letter-spacing:0.2em;color:var(--text-dim);margin-bottom:1.25rem;">CUSTOMER</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;">
+        <div>
+          <div style="font-size:0.75rem;color:var(--text-dim);margin-bottom:0.35rem;">NAME</div>
+          <div>{{ order.user.first_name }} {{ order.user.last_name }}</div>
+        </div>
+        <div>
+          <div style="font-size:0.75rem;color:var(--text-dim);margin-bottom:0.35rem;">EMAIL</div>
+          <div>{{ order.user.email }}</div>
+        </div>
+        <div>
+          <div style="font-size:0.75rem;color:var(--text-dim);margin-bottom:0.35rem;">PHONE</div>
+          <div>{{ order.user.phone or '—' }}</div>
+        </div>
+        <div>
+          <div style="font-size:0.75rem;color:var(--text-dim);margin-bottom:0.35rem;">MEMBER SINCE</div>
+          <div>{{ order.user.created_at.strftime('%d %b %Y') }}</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SHIPPING ADDRESS -->
+    {% set addr = order.get_shipping_address() %}
+    {% if addr %}
+    <div style="background:var(--panel);border:1px solid var(--border);padding:1.75rem;">
+      <div style="font-family:var(--font-display);font-size:0.65rem;letter-spacing:0.2em;color:var(--text-dim);margin-bottom:1rem;">SHIPPING ADDRESS</div>
+      <div style="font-size:0.9rem;line-height:1.8;">
+        {{ addr.get('street','') }}<br/>
+        {{ addr.get('city','') }}, {{ addr.get('governorate','') }}
+        {% if addr.get('postal_code') %}, {{ addr.get('postal_code') }}{% endif %}
+      </div>
+    </div>
+    {% endif %}
+
+    {% if order.notes %}
+    <div style="background:var(--panel);border:1px solid var(--border);padding:1.75rem;">
+      <div style="font-family:var(--font-display);font-size:0.65rem;letter-spacing:0.2em;color:var(--text-dim);margin-bottom:0.75rem;">ORDER NOTES</div>
+      <div style="font-size:0.9rem;color:var(--text-dim);">{{ order.notes }}</div>
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- RIGHT -->
+  <div style="display:flex;flex-direction:column;gap:1.5rem;">
+
+    <!-- UPDATE STATUS -->
+    <div style="background:var(--panel);border:1px solid var(--border);padding:1.75rem;">
+      <div style="font-family:var(--font-display);font-size:0.65rem;letter-spacing:0.2em;color:var(--text-dim);margin-bottom:1.25rem;">UPDATE STATUS</div>
+      <form method="POST" action="{{ url_for('admin.update_order_status', order_id=order.id) }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+        <div class="field">
+          <label>ORDER STATUS</label>
+          <select name="status">
+            {% for s in ['pending','confirmed','shipped','delivered','cancelled'] %}
+            <option value="{{ s }}" {% if order.status == s %}selected{% endif %}>{{ s.upper() }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <button type="submit" class="btn btn--primary btn--full"><span>UPDATE STATUS</span></button>
+      </form>
+    </div>
+
+    <!-- ORDER SUMMARY -->
+    <div style="background:var(--panel);border:1px solid var(--border);padding:1.75rem;">
+      <div style="font-family:var(--font-display);font-size:0.65rem;letter-spacing:0.2em;color:var(--text-dim);margin-bottom:1.25rem;">FINANCIALS</div>
+      <div class="summary-row"><span>Subtotal</span><span>{{ "%.0f"|format(order.subtotal) }} EGP</span></div>
+      <div class="summary-row"><span>Shipping</span><span>{{ "%.0f"|format(order.shipping_cost) }} EGP</span></div>
+      <div class="summary-row" style="border-top:1px solid var(--border);padding-top:1rem;margin-top:0.5rem;">
+        <span style="font-family:var(--font-display);font-size:0.8rem;letter-spacing:0.1em;">TOTAL</span>
+        <span class="summary-total">{{ "%.0f"|format(order.total) }} EGP</span>
+      </div>
+      <div style="border-top:1px solid var(--border);padding-top:1rem;margin-top:1rem;">
+        <div style="font-size:0.78rem;color:var(--text-dim);margin-bottom:0.5rem;">Payment Method</div>
+        <div style="font-family:var(--font-display);font-size:0.82rem;">{{ order.payment_method.replace('_',' ').title() }}</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>@media(max-width:768px){.admin-main>div:last-child>div:first-child{grid-template-columns:1fr!important}}</style>
+{% endblock %}

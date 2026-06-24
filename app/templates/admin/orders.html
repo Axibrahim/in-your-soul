@@ -1,0 +1,61 @@
+{% extends 'admin/base.html' %}
+{% block title %}Orders{% endblock %}
+{% block page_title %}ORDERS{% endblock %}
+
+{% block content %}
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;flex-wrap:wrap;gap:1rem;">
+  <h2 style="font-size:1.25rem;">All Orders <span style="color:var(--text-dim);font-size:0.7em;">({{ orders|length }})</span></h2>
+  <div style="display:flex;gap:0.5rem;flex-wrap:wrap;">
+    {% for s in ['', 'pending', 'confirmed', 'shipped', 'delivered', 'cancelled'] %}
+    <a href="{{ url_for('admin.orders', status=s if s else None) }}"
+       class="btn btn--sm {% if status_filter == s or (not status_filter and not s) %}btn--primary{% else %}btn--ghost{% endif %}">
+      <span>{{ s.upper() if s else 'ALL' }}</span>
+    </a>
+    {% endfor %}
+  </div>
+</div>
+
+{% if orders %}
+<div class="table-wrap" style="background:var(--panel);border:1px solid var(--border);">
+  <table>
+    <thead>
+      <tr>
+        <th>ORDER #</th>
+        <th>CUSTOMER</th>
+        <th>DATE</th>
+        <th>PAYMENT</th>
+        <th>ITEMS</th>
+        <th>TOTAL</th>
+        <th>STATUS</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for order in orders %}
+      <tr>
+        <td style="font-family:var(--font-display);font-size:0.8rem;color:var(--accent);white-space:nowrap;">{{ order.order_number }}</td>
+        <td>
+          <div style="font-size:0.85rem;">{{ order.user.first_name }} {{ order.user.last_name }}</div>
+          <div style="font-size:0.72rem;color:var(--text-dim);">{{ order.user.email }}</div>
+        </td>
+        <td style="color:var(--text-dim);font-size:0.82rem;white-space:nowrap;">{{ order.created_at.strftime('%d %b %Y') }}<br/><span style="font-size:0.72rem;">{{ order.created_at.strftime('%H:%M') }}</span></td>
+        <td style="font-size:0.8rem;color:var(--text-dim);white-space:nowrap;">{{ order.payment_method.replace('_',' ').title() }}</td>
+        <td style="font-family:var(--font-display);font-size:0.85rem;">{{ order.items|length }}</td>
+        <td style="font-family:var(--font-display);font-size:0.9rem;">{{ "%.0f"|format(order.total) }} EGP</td>
+        <td>
+          {% set smap = {'pending':'badge--warning','confirmed':'badge--success','shipped':'badge--success','delivered':'badge--success','cancelled':'badge--danger'} %}
+          <span class="badge {{ smap.get(order.status,'badge--muted') }}">{{ order.status.upper() }}</span>
+        </td>
+        <td><a href="{{ url_for('admin.order_detail', order_id=order.id) }}" class="btn btn--sm btn--ghost"><span>MANAGE</span></a></td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+<div class="empty-state" style="padding:6rem 0;border:1px solid var(--border);background:var(--panel);">
+  <div class="empty-icon">📋</div>
+  <h3>NO ORDERS FOUND</h3>
+</div>
+{% endif %}
+{% endblock %}

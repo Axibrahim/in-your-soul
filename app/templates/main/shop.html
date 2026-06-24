@@ -1,0 +1,121 @@
+{% extends 'base.html' %}
+{% block title %}Shop — FREKS{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div class="section-eyebrow">THE ARCHIVE</div>
+  <h1 class="page-title">All Pieces</h1>
+  <p class="page-subtitle">Oversized drops for the underground.</p>
+</div>
+
+<section class="section" style="padding-top:3rem;">
+  <div class="section-inner">
+
+    <!-- FILTERS -->
+    <div style="display:flex; gap:1rem; flex-wrap:wrap; margin-bottom:2.5rem; align-items:center; border-bottom:1px solid var(--border); padding-bottom:1.5rem;">
+      <form method="GET" style="display:flex; gap:0.75rem; flex-wrap:wrap; align-items:center; flex:1;">
+        <input type="text" name="q" value="{{ search or '' }}" placeholder="Search pieces..." style="background:var(--panel);border:1px solid var(--border);color:var(--text);font-family:var(--font-body);font-size:0.85rem;padding:0.6rem 1rem;outline:none;border-radius:0;min-width:200px;"/>
+        
+        <select name="category" style="background:var(--panel);border:1px solid var(--border);color:var(--text);font-family:var(--font-display);font-size:0.7rem;letter-spacing:0.1em;padding:0.6rem 1rem;outline:none;border-radius:0;cursor:pointer;">
+          <option value="">ALL CATEGORIES</option>
+          {% for cat in categories %}
+            <option value="{{ cat.slug }}" {% if current_category == cat.slug %}selected{% endif %}>{{ cat.name.upper() }}</option>
+          {% endfor %}
+        </select>
+
+        <select name="sort" style="background:var(--panel);border:1px solid var(--border);color:var(--text);font-family:var(--font-display);font-size:0.7rem;letter-spacing:0.1em;padding:0.6rem 1rem;outline:none;border-radius:0;cursor:pointer;">
+          <option value="new" {% if sort=='new' %}selected{% endif %}>NEWEST</option>
+          <option value="price_asc" {% if sort=='price_asc' %}selected{% endif %}>PRICE ↑</option>
+          <option value="price_desc" {% if sort=='price_desc' %}selected{% endif %}>PRICE ↓</option>
+        </select>
+
+        <button type="submit" class="btn btn--sm"><span>FILTER</span></button>
+        {% if search or current_category %}
+          <a href="{{ url_for('main.shop') }}" class="btn btn--ghost btn--sm"><span>CLEAR</span></a>
+        {% endif %}
+      </form>
+
+      <div style="font-family:var(--font-display);font-size:0.65rem;letter-spacing:0.15em;color:var(--text-dim);">
+        {{ products.total }} PIECES
+      </div>
+    </div>
+
+    <!-- PRODUCTS -->
+    {% if products.items %}
+    <div class="products-grid">
+      {% for product in products.items %}
+      <div class="product-card reveal" onclick="window.location='{{ url_for('main.product_detail', product_id=product.id) }}'">
+        <div class="product-card-img">
+          {% if product.image_url %}
+            <img src="{{ product.image_url }}" alt="{{ product.name }}" loading="lazy"/>
+            {% if product.image_url_2 %}
+              <div class="product-card-img-2">
+                <img src="{{ product.image_url_2 }}" alt="{{ product.name }}" loading="lazy"/>
+              </div>
+            {% endif %}
+          {% else %}
+            <div style="width:100%;height:100%;background:#0a100a;display:flex;align-items:center;justify-content:center;">
+              <span style="font-family:var(--font-display);font-size:0.7rem;color:var(--muted)">FREKS</span>
+            </div>
+          {% endif %}
+          {% set stock = product.get_total_stock() %}
+          {% if product.is_featured %}
+            <span class="product-badge">FEATURED</span>
+          {% elif stock == 0 %}
+            <span class="product-badge" style="background:var(--muted);color:var(--text-dim);">SOLD OUT</span>
+          {% elif stock <= 5 %}
+            <span class="product-badge" style="background:var(--danger);">LOW STOCK</span>
+          {% endif %}
+        </div>
+        <div class="product-card-body">
+          <div class="product-name">{{ product.name }}</div>
+          <div class="product-price">{{ "%.0f"|format(product.price) }} EGP</div>
+          <div class="product-stock">
+            {% if stock > 10 %}
+              <span class="live-dot"></span> In Stock
+            {% elif stock > 0 %}
+              <span style="color:var(--danger)">⚡ {{ stock }} left</span>
+            {% else %}
+              <span style="color:var(--muted)">Sold Out</span>
+            {% endif %}
+          </div>
+        </div>
+        <div class="product-card-actions">
+          <a href="{{ url_for('main.product_detail', product_id=product.id) }}" class="btn btn--full" onclick="event.stopPropagation()">
+            <span>VIEW PIECE</span>
+          </a>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+
+    <!-- PAGINATION -->
+    {% if products.pages > 1 %}
+    <div class="pagination">
+      {% if products.has_prev %}
+        <a href="{{ url_for('main.shop', page=products.prev_num, category=current_category, sort=sort, q=search) }}" class="page-link">←</a>
+      {% endif %}
+      {% for p in products.iter_pages() %}
+        {% if p %}
+          <a href="{{ url_for('main.shop', page=p, category=current_category, sort=sort, q=search) }}" class="page-link {% if p == products.page %}active{% endif %}">{{ p }}</a>
+        {% else %}
+          <span class="page-link" style="color:var(--muted);">…</span>
+        {% endif %}
+      {% endfor %}
+      {% if products.has_next %}
+        <a href="{{ url_for('main.shop', page=products.next_num, category=current_category, sort=sort, q=search) }}" class="page-link">→</a>
+      {% endif %}
+    </div>
+    {% endif %}
+
+    {% else %}
+    <div class="empty-state">
+      <div class="empty-icon">🔍</div>
+      <h3>NO PIECES FOUND</h3>
+      <p>Try adjusting your filters or <a href="{{ url_for('main.shop') }}">view all pieces</a>.</p>
+    </div>
+    {% endif %}
+
+  </div>
+</section>
+{% endblock %}

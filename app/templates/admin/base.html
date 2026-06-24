@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>{% block title %}Admin{% endblock %} — FREKS ADMIN</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}"/>
+  <style>
+    .admin-topbar {
+      position: fixed; top:0; left:240px; right:0; z-index:100;
+      height:56px; background:var(--panel); border-bottom:1px solid var(--border);
+      display:flex; align-items:center; justify-content:space-between;
+      padding:0 2rem;
+    }
+    .admin-topbar-title { font-family:var(--font-display); font-size:0.7rem; letter-spacing:0.15em; color:var(--text-dim); }
+    .admin-topbar-actions { display:flex; align-items:center; gap:1rem; }
+    .admin-main { padding:4.5rem 2rem 2rem; }
+    @media(max-width:768px){
+      .admin-topbar { left:0; }
+      .admin-main { padding:4.5rem 1rem 2rem; }
+    }
+  </style>
+</head>
+<body>
+<div class="noise"></div>
+
+<div class="admin-layout">
+  <!-- SIDEBAR -->
+  <aside class="admin-sidebar">
+    <div style="padding:0 1.5rem 2rem; border-bottom:1px solid var(--border); margin-bottom:1rem;">
+      <a href="{{ url_for('main.index') }}" style="display:block;">
+        <svg width="80" height="24" viewBox="0 0 80 24" fill="none">
+          <text x="0" y="19" font-family="Space Mono" font-weight="700" font-size="19" fill="#76ff03" letter-spacing="3">FREKS</text>
+        </svg>
+      </a>
+      <div style="font-family:var(--font-display);font-size:0.58rem;letter-spacing:0.2em;color:var(--danger);margin-top:0.5rem;">ADMIN SYSTEM</div>
+    </div>
+
+    {% set nav = [
+      (url_for('admin.dashboard'), 'DASHBOARD', '◈'),
+      (url_for('admin.products'), 'PRODUCTS', '◧'),
+      (url_for('admin.orders'), 'ORDERS', '◫'),
+      (url_for('admin.categories'), 'CATEGORIES', '◩'),
+      (url_for('admin.users'), 'USERS', '◪'),
+    ] %}
+    {% for href, label, icon in nav %}
+    <a href="{{ href }}" class="admin-nav-item {% if request.path == href or request.path.startswith(href) and href != url_for('admin.dashboard') %}active{% elif request.path == url_for('admin.dashboard') and href == url_for('admin.dashboard') %}active{% endif %}">
+      <span style="font-size:1rem; width:20px; text-align:center;">{{ icon }}</span>
+      {{ label }}
+    </a>
+    {% endfor %}
+
+    <div style="border-top:1px solid var(--border); margin-top:auto; padding:1.5rem;">
+      <a href="{{ url_for('main.index') }}" class="admin-nav-item" style="border-left:none; color:var(--text-dim);">
+        <span>←</span> BACK TO SITE
+      </a>
+      <a href="{{ url_for('auth.logout') }}" class="admin-nav-item" style="border-left:none; color:var(--danger);">
+        <span>⏻</span> LOGOUT
+      </a>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <div>
+    <div class="admin-topbar">
+      <div class="admin-topbar-title">{% block page_title %}Dashboard{% endblock %}</div>
+      <div class="admin-topbar-actions">
+        <span style="font-family:var(--font-display);font-size:0.65rem;color:var(--text-dim);">{{ current_user.username.upper() }}</span>
+        <span class="badge badge--danger">ADMIN</span>
+      </div>
+    </div>
+
+    <main class="admin-main">
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+          <div id="flash-container" class="flash-container" style="position:relative;top:auto;right:auto;max-width:100%;margin-bottom:1.5rem;">
+            {% for cat, msg in messages %}
+              <div class="flash flash--{{ cat }}">
+                <span>{{ msg }}</span>
+                <button onclick="this.parentElement.remove()">✕</button>
+              </div>
+            {% endfor %}
+          </div>
+        {% endif %}
+      {% endwith %}
+
+      {% block content %}{% endblock %}
+    </main>
+  </div>
+</div>
+
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+{% block scripts %}{% endblock %}
+</body>
+</html>

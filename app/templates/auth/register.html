@@ -1,0 +1,62 @@
+{% extends 'base.html' %}
+{% block title %}Join FREKS{% endblock %}
+
+{% block content %}
+<div class="form-page">
+  <div class="form-card" style="max-width:560px;">
+    <div class="form-logo">
+      <svg width="100" height="30" viewBox="0 0 100 30" fill="none">
+        <text x="0" y="24" font-family="Space Mono" font-weight="700" font-size="24" fill="#76ff03" letter-spacing="4">FREKS</text>
+      </svg>
+    </div>
+    <div class="form-title">JOIN THE UNDERGROUND</div>
+
+    <form method="POST" action="{{ url_for('auth.register') }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+
+      <div class="field-row">
+        <div class="field">
+          <label>FIRST NAME</label>
+          <input type="text" name="first_name" placeholder="First Name" required/>
+        </div>
+        <div class="field">
+          <label>LAST NAME</label>
+          <input type="text" name="last_name" placeholder="Last Name" required/>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>USERNAME</label>
+        <input type="text" name="username" placeholder="Nick name" required autocomplete="username"/>
+      </div>
+
+      <div class="field">
+        <label>PHONE NUMBER</label>
+        <input type="tel" name="phone" placeholder="Phone Number" required autocomplete="tel"/>
+      </div>
+
+      <div class="field-row">
+        <div class="field">
+          <label>PASSWORD</label>
+          <input type="password" name="password" placeholder="Min. 8 characters" required autocomplete="new-password"/>
+        </div>
+        <div class="field">
+          <label>CONFIRM PASSWORD</label>
+          <input type="password" name="confirm_password" placeholder="Repeat password" required autocomplete="new-password"/>
+        </div>
+      </div>
+
+      <button type="submit" class="btn btn--primary btn--full" style="margin-top:0.5rem;">
+        <span>CREATE ACCOUNT</span>
+      </button>
+    </form>
+
+    <div class="form-divider">OR</div>
+
+    <div style="text-align:center; font-size:0.85rem; color:var(--text-dim);">
+      Already part of FREKS?
+      <a href="{{ url_for('auth.login') }}" style="color:var(--accent); margin-left:0.35rem;">Login →</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

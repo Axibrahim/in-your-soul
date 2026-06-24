@@ -1,0 +1,82 @@
+{% extends 'admin/base.html' %}
+{% block title %}Products{% endblock %}
+{% block page_title %}PRODUCTS{% endblock %}
+
+{% block content %}
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2rem;flex-wrap:wrap;gap:1rem;">
+  <h2 style="font-size:1.25rem;">All Products <span style="color:var(--text-dim);font-size:0.7em;">({{ products|length }})</span></h2>
+  <a href="{{ url_for('admin.add_product') }}" class="btn btn--primary"><span>+ ADD PRODUCT</span></a>
+</div>
+
+{% if products %}
+<div class="table-wrap" style="background:var(--panel);border:1px solid var(--border);">
+  <table>
+    <thead>
+      <tr>
+        <th>PRODUCT</th>
+        <th>CATEGORY</th>
+        <th>PRICE</th>
+        <th>STOCK</th>
+        <th>FEATURED</th>
+        <th>STATUS</th>
+        <th>ACTIONS</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for product in products %}
+      <tr>
+        <td>
+          <div style="display:flex;align-items:center;gap:1rem;">
+            {% if product.image_url %}
+            <img src="{{ product.image_url }}" alt="{{ product.name }}" style="width:48px;height:60px;object-fit:cover;border:1px solid var(--border);"/>
+            {% else %}
+            <div style="width:48px;height:60px;background:var(--bg);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;">
+              <span style="font-size:0.5rem;color:var(--muted);font-family:var(--font-display);">IMG</span>
+            </div>
+            {% endif %}
+            <div>
+              <div style="font-family:var(--font-display);font-size:0.8rem;color:var(--text);">{{ product.name }}</div>
+              <div style="font-size:0.72rem;color:var(--text-dim);">ID: {{ product.id }}</div>
+            </div>
+          </div>
+        </td>
+        <td style="font-size:0.8rem;color:var(--text-dim);">{{ product.category.name if product.category else '—' }}</td>
+        <td style="font-family:var(--font-display);font-size:0.85rem;">{{ "%.0f"|format(product.price) }} EGP</td>
+        <td>
+          {% set stock = product.get_total_stock() %}
+          <span style="font-family:var(--font-display);font-size:0.85rem;color:{% if stock == 0 %}var(--danger){% elif stock <= 5 %}#ffab00{% else %}var(--accent){% endif %};">{{ stock }}</span>
+        </td>
+        <td>
+          {% if product.is_featured %}
+          <span class="badge badge--success">YES</span>
+          {% else %}
+          <span class="badge badge--muted">NO</span>
+          {% endif %}
+        </td>
+        <td>
+          <span class="badge {% if product.is_active %}badge--success{% else %}badge--muted{% endif %} product-status-badge">
+            {% if product.is_active %}ACTIVE{% else %}INACTIVE{% endif %}
+          </span>
+        </td>
+        <td>
+          <div style="display:flex;gap:0.5rem;flex-wrap:wrap;">
+            <a href="{{ url_for('admin.edit_product', product_id=product.id) }}" class="btn btn--sm btn--ghost"><span>EDIT</span></a>
+            <button class="btn btn--sm toggle-product-btn {% if not product.is_active %}btn--primary{% else %}btn--danger{% endif %}" data-id="{{ product.id }}">
+              <span>{% if product.is_active %}DEACTIVATE{% else %}ACTIVATE{% endif %}</span>
+            </button>
+          </div>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+<div class="empty-state" style="padding:6rem 0;border:1px solid var(--border);background:var(--panel);">
+  <div class="empty-icon">📦</div>
+  <h3>NO PRODUCTS YET</h3>
+  <p style="margin-bottom:2rem;">Add your first product to get started.</p>
+  <a href="{{ url_for('admin.add_product') }}" class="btn btn--primary"><span>+ ADD PRODUCT</span></a>
+</div>
+{% endif %}
+{% endblock %}

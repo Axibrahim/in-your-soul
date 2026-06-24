@@ -1,0 +1,128 @@
+{% extends 'base.html' %}
+{% block title %}Order {{ order.order_number }} — FREKS{% endblock %}
+
+{% block content %}
+<div class="account-layout" style="padding-top:6rem;">
+  <div style="margin-bottom:2rem;">
+    <a href="{{ url_for('account.orders') }}" style="font-family:var(--font-display);font-size:0.65rem;letter-spacing:0.15em;color:var(--text-dim);display:inline-flex;align-items:center;gap:0.5rem;margin-bottom:1.5rem;">
+      ← BACK TO ORDERS
+    </a>
+    <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:1rem;">
+      <div>
+        <div class="section-eyebrow" style="margin-bottom:0.5rem;">ORDER DETAIL</div>
+        <h1 style="font-size:clamp(1.2rem,3vw,2rem);">{{ order.order_number }}</h1>
+        <p style="color:var(--text-dim); font-size:0.85rem; margin-top:0.25rem;">
+          Placed {{ order.created_at.strftime('%d %B %Y at %H:%M') }}
+        </p>
+      </div>
+      {% set smap = {'pending':'badge--warning','confirmed':'badge--success','shipped':'badge--success','delivered':'badge--success','cancelled':'badge--danger'} %}
+      <span class="badge {{ smap.get(order.status,'badge--muted') }}" style="font-size:0.75rem;padding:0.4rem 1rem;">{{ order.status.upper() }}</span>
+    </div>
+  </div>
+
+  <!-- STATUS BAR -->
+  {% set steps = ['pending','confirmed','shipped','delivered'] %}
+  {% if order.status != 'cancelled' %}
+  <div style="background:var(--panel);border:1px solid var(--border);padding:2rem;margin-bottom:1.5rem;">
+    <div style="font-family:var(--font-display);font-size:0.65rem;letter-spacing:0.2em;color:var(--text-dim);margin-bottom:1.5rem;">ORDER PROGRESS</div>
+    <div class="order-status-bar">
+      {% for step in steps %}
+      {% set is_done = steps.index(step) <= steps.index(order.status) if order.status in steps else False %}
+      <div class="status-step {% if is_done %}done{% endif %}">
+        <div class="status-dot">{% if is_done %}<svg width="12" height="12" viewBox="0 0 12 12" fill="none" style="display:block;margin:auto;margin-top:6px;"><polyline points="2,6 5,9 10,3" stroke="#040804" stroke-width="2" fill="none"/></svg>{% endif %}</div>
+        <div class="status-name">{{ step.upper() }}</div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+  <div style="display:grid;grid-template-columns:1fr 340px;gap:1.5rem;align-items:start;">
+
+    <!-- ITEMS -->
+    <div>
+      <div style="background:var(--panel);border:1px solid var(--border);padding:1.75rem;margin-bottom:1.5rem;">
+        <div style="font-family:var(--font-display);font-size:0.65rem;letter-spacing:0.2em;color:var(--text-dim);margin-bottom:1.25rem;">ORDER ITEMS</div>
+        {% for item in order.items %}
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:1rem 0;border-bottom:1px solid var(--border);">
+          <div>
+            <div style="font-family:var(--font-display);font-size:0.85rem;color:var(--text);margin-bottom:0.25rem;">{{ item.product_name }}</div>
+            <div style="font-size:0.78rem;color:var(--text-dim);">Size: {{ item.size }} · Qty: {{ item.quantity }}</div>
+          </div>
+          <div style="font-family:var(--font-display);font-size:0.9rem;color:var(--accent);">{{ "%.0f"|format(item.total_price) }} EGP</div>
+        </div>
+        {% endfor %}
+      </div>
+
+      <!-- SHIPPING ADDRESS -->
+      {% set addr = order.get_shipping_address() %}
+      {% if addr %}
+      <div style="background:var(--panel);border:1px solid var(--border);padding:1.75rem;">
+        <div style="font-family:var(--font-display);font-size:0.65rem;letter-spacing:0.2em;color:var(--text-dim);margin-bottom:1rem;">DELIVERY ADDRESS</div>
+        <div style="font-size:0.9rem;color:var(--text);line-height:1.8;">
+          {{ addr.get('street','') }}<br/>
+          {{ addr.get('city','') }}, {{ addr.get('governorate','') }}
+          {% if addr.get('postal_code') %}, {{ addr.get('postal_code') }}{% endif %}
+        </div>
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- SUMMARY PANEL -->
+    <div>
+      <div style="background:var(--panel);border:1px solid var(--border);padding:1.75rem;">
+        <div style="font-family:var(--font-display);font-size:0.65rem;letter-spacing:0.2em;color:var(--text-dim);margin-bottom:1.25rem;">ORDER SUMMARY</div>
+
+        <div class="summary-row">
+          <span>Subtotal</span>
+          <span>{{ "%.0f"|format(order.subtotal) }} EGP</span>
+        </div>
+        <div class="summary-row">
+          <span>Shipping</span>
+          <span>{{ "%.0f"|format(order.shipping_cost) }} EGP</span>
+        </div>
+        <div class="summary-row" style="border-top:1px solid var(--border);padding-top:1rem;margin-top:0.5rem;">
+          <span style="font-family:var(--font-display);font-size:0.8rem;letter-spacing:0.1em;">TOTAL</span>
+          <span class="summary-total">{{ "%.0f"|format(order.total) }} EGP</span>
+        </div>
+
+        <div style="border-top:1px solid var(--border);margin-top:1.25rem;padding-top:1.25rem;">
+          <div style="font-size:0.78rem;color:var(--text-dim);margin-bottom:0.5rem;">Payment Method</div>
+          <div style="font-family:var(--font-display);font-size:0.8rem;color:var(--text);">
+            {{ order.payment_method.replace('_',' ').title() }}
+          </div>
+        </div>
+
+        {% if order.notes %}
+        <div style="border-top:1px solid var(--border);margin-top:1.25rem;padding-top:1.25rem;">
+          <div style="font-size:0.78rem;color:var(--text-dim);margin-bottom:0.5rem;">Order Notes</div>
+          <div style="font-size:0.85rem;color:var(--text);">{{ order.notes }}</div>
+        </div>
+        {% endif %}
+
+        {% if order.payment_method == 'vodafone_cash' %}
+        <div style="border-top:1px solid var(--border);margin-top:1.25rem;padding-top:1.25rem;background:rgba(118,255,3,0.05);padding:1rem;border:1px solid rgba(118,255,3,0.2);border-radius:2px;">
+          <div style="font-family:var(--font-display);font-size:0.65rem;letter-spacing:0.15em;color:var(--accent);margin-bottom:0.5rem;">VODAFONE CASH DETAILS</div>
+          <div style="font-size:0.85rem;color:var(--text);">Transfer <strong>{{ "%.0f"|format(order.total) }} EGP</strong> to:</div>
+          <div style="font-family:var(--font-display);font-size:1.1rem;color:var(--accent);margin:0.5rem 0;letter-spacing:0.1em;">01557793954</div>
+          <div style="font-size:0.78rem;color:var(--text-dim);">Send payment screenshot to confirm your order.</div>
+        </div>
+        {% elif order.payment_method == 'instapay' %}
+        <div style="border-top:1px solid var(--border);margin-top:1.25rem;padding-top:1.25rem;background:rgba(118,255,3,0.05);padding:1rem;border:1px solid rgba(118,255,3,0.2);border-radius:2px;">
+          <div style="font-family:var(--font-display);font-size:0.65rem;letter-spacing:0.15em;color:var(--accent);margin-bottom:0.5rem;">INSTAPAY DETAILS</div>
+          <div style="font-size:0.85rem;color:var(--text);">Send <strong>{{ "%.0f"|format(order.total) }} EGP</strong> via InstaPay and share your receipt.</div>
+        </div>
+        {% endif %}
+      </div>
+
+      <a href="{{ url_for('main.shop') }}" class="btn btn--ghost btn--full" style="margin-top:1rem;"><span>CONTINUE SHOPPING</span></a>
+    </div>
+  </div>
+</div>
+
+<style>
+@media(max-width:768px){
+  .account-layout > div:last-child { grid-template-columns:1fr !important; }
+}
+</style>
+{% endblock %}

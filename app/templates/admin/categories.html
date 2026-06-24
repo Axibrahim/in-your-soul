@@ -1,0 +1,58 @@
+{% extends 'admin/base.html' %}
+{% block title %}Categories{% endblock %}
+{% block page_title %}CATEGORIES{% endblock %}
+
+{% block content %}
+<div style="display:grid;grid-template-columns:1fr 360px;gap:2rem;align-items:start;">
+
+  <!-- LIST -->
+  <div>
+    <h2 style="font-size:1.25rem;margin-bottom:1.5rem;">All Categories</h2>
+    {% if categories %}
+    <div style="background:var(--panel);border:1px solid var(--border);">
+      <table>
+        <thead>
+          <tr><th>NAME</th><th>SLUG</th><th>PRODUCTS</th><th></th></tr>
+        </thead>
+        <tbody>
+          {% for cat in categories %}
+          <tr>
+            <td style="font-family:var(--font-display);font-size:0.85rem;">{{ cat.name }}</td>
+            <td style="font-size:0.78rem;color:var(--text-dim);">{{ cat.slug }}</td>
+            <td>{{ cat.products|length }}</td>
+            <td>
+              {% if cat.products|length == 0 %}
+              <form method="POST" action="{{ url_for('admin.delete_category', cat_id=cat.id) }}" onsubmit="return confirm('Delete this category?')">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                <button type="submit" class="btn btn--danger btn--sm"><span>DELETE</span></button>
+              </form>
+              {% else %}
+              <span style="font-size:0.72rem;color:var(--muted);">Has products</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="empty-state" style="padding:3rem;border:1px solid var(--border);background:var(--panel);">
+      <h3>NO CATEGORIES YET</h3>
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- ADD -->
+  <div style="background:var(--panel);border:1px solid var(--border);padding:2rem;position:sticky;top:4.5rem;">
+    <div style="font-family:var(--font-display);font-size:0.65rem;letter-spacing:0.2em;color:var(--text-dim);margin-bottom:1.5rem;">ADD CATEGORY</div>
+    <form method="POST" action="{{ url_for('admin.add_category') }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+      <div class="field">
+        <label>CATEGORY NAME</label>
+        <input type="text" name="name" placeholder="T-Shirts" required/>
+      </div>
+      <button type="submit" class="btn btn--primary btn--full"><span>ADD CATEGORY</span></button>
+    </form>
+  </div>
+</div>
+{% endblock %}

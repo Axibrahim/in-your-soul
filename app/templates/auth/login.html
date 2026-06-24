@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+{% block title %}Login — FREKS{% endblock %}
+
+{% block content %}
+<div class="form-page">
+  <div class="form-card">
+    <div class="form-logo">
+      <svg width="100" height="30" viewBox="0 0 100 30" fill="none">
+        <text x="0" y="24" font-family="Space Mono" font-weight="700" font-size="24" fill="#76ff03" letter-spacing="4">FREKS</text>
+      </svg>
+    </div>
+    <div class="form-title">ENTER THE SYSTEM</div>
+
+    <form method="POST" action="{{ url_for('auth.login') }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+
+      <div class="field">
+        <label>User Name (Nick Name) </label>
+        <input type="text" name="username" placeholder="Username" required autocomplete="username"/>
+      </div>
+
+      <div class="field">
+        <label>PASSWORD</label>
+        <input type="password" name="password" placeholder="••••••••" required autocomplete="current-password"/>
+      </div>
+
+      <div class="check-field">
+        <input type="checkbox" name="remember" id="remember"/>
+        <label for="remember">Keep me logged in</label>
+      </div>
+
+      <button type="submit" class="btn btn--primary btn--full">
+        <span>ACCESS FREKS</span>
+      </button>
+    </form>
+
+    <div class="form-divider">OR</div>
+
+    <div style="text-align:center; font-size:0.85rem; color:var(--text-dim);">
+      New to FREKS?
+      <a href="{{ url_for('auth.register') }}" style="color:var(--accent); margin-left:0.35rem;">Create Account →</a>
+    </div>
+  </div>
+</div>
+{% endblock %}
