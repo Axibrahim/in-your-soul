@@ -51,10 +51,10 @@ Visit: `http://localhost:5000`
 
 ## Default Credentials
 
-| Role  | Email            | Password     |
+| Role  | User name            | Password     |
 |-------|------------------|-------------|
-| Admin | admin@freks.eg   | Freks@2025! |
-| Demo  | demo@freks.eg    | Demo@2025!  |
+| Admin | bahz   | Amro4488348 |
+| Demo  | joo    | Yousef 4488348  |
 
 **Change these immediately in production.**
 
@@ -128,7 +128,7 @@ freks/
 
 ## Hero Video
 
-Place your video at:
+Place video at:
 ```
 app/static/videos/hero.mp4
 ```
