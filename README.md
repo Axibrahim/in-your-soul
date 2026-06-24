@@ -10,7 +10,7 @@ Built with Flask, SQLAlchemy, and the Jungle System design language.
 - **Backend**: Flask (Python), SQLAlchemy ORM, Flask-Login, Flask-Bcrypt, Flask-WTF (CSRF)
 - **Database**: SQLite (dev) / PostgreSQL (prod)
 - **Frontend**: Jinja2 templates, pure CSS (Space Mono + Space Grotesk), vanilla JS
-- **Design**: Jungle System — Lime `#76ff03` on pitch black `#040804`
+- **Design**: Void Energetic System — Lime `#76ff03` on pitch black `#040804`
 
 ---
 
@@ -31,7 +31,7 @@ pip install -r requirements.txt
 ### 3. Configure environment (optional)
 Create a `.env` file or set env vars:
 ```bash
-SECRET_KEY=your-secret-key-here
+SECRET_KEY=server_test_secret_key
 DATABASE_URL=sqlite:///freks.db   # or postgresql://...
 ```
 
