@@ -1,7 +1,7 @@
-# FREKS — Jungle System
+# FREKS — Commercial Website
 
 Egyptian underground streetwear e-commerce platform.  
-Built with Flask, SQLAlchemy, and the Jungle System design language.
+Built with Flask, SQLAlchemy, and Authentic System design.
 
 ---
 
@@ -131,20 +131,17 @@ freks/
 Place video at:
 ```
 app/static/videos/hero.mp4
-```
 
-Recommended: 1920×1080, H.264, under 20MB, dark/moody content.  
-The cyber-rain matrix canvas will render as a fallback if no video is loaded.
+```
 
 ---
 
-## Production Deployment
+## Production Deployment Requirements
 
-1. Set `SECRET_KEY` to a strong random value
-2. Set `DATABASE_URL` to your PostgreSQL connection string
+1. Set `SECRET_KEY` to a strong random password
+2. Set `DATABASE_URL` to PostgreSQL connection string
 3. Use `gunicorn run:app` behind nginx
 4. Set `DEBUG=False`
-5. Configure file upload storage (S3 recommended for images)
 
 ---
 
