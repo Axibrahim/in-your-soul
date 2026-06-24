@@ -110,7 +110,6 @@
       <div class="footer-col">
         <h4>ACCOUNT</h4>
         {% if current_user.is_authenticated %}
-          <a href="{{ url_for('account.dashboard') }}">Dashboard</a>
           <a href="{{ url_for('account.orders') }}">Orders</a>
           <a href="{{ url_for('account.addresses') }}">Addresses</a>
         {% else %}
@@ -119,7 +118,7 @@
         {% endif %}
       </div>
       <div class="footer-col">
-        <h4>PAY</h4>
+        <h4>PAYMENT METHODS</h4>
         <span>Cash on Delivery</span>
         <span>Vodafone Cash</span>
         <span>InstaPay</span>
