@@ -32,12 +32,24 @@ pip install -r requirements.txt
 Create a `.env` file or set env vars:
 ```bash
 SECRET_KEY=server_test_secret_key
-DATABASE_URL=sqlite:///freks.db   # or postgresql://...
-```
+DATABASE_URL=sqlite:///freks.db
 
-### 4. Initialize and seed the database
-```bash
-python seed.py
+// For college //
+
+git clone REPOSITORY_URL
+cd PROJECT_NAME
+
+# Windows
+python -m venv venv
+venv\Scripts\activate
+
+# macOS
+python3 -m venv venv
+source venv/bin/activate
+
+pip install -r requirements.txt
+
+python run.py
 ```
 
 ### 5. Run the server
