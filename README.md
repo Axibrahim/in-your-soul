@@ -115,7 +115,7 @@ freks/
     │   ├── images/
     │   │   └── products/   # Uploaded product images
     │   └── videos/
-    │       └── hero.mp4    # Homepage hero video (add your own)
+    │       └── hero.mp4    # Homepage video (mp4 Video required)
     └── templates/
         ├── base.html       # Global layout + nav + footer
         ├── main/           # Shop, product, cart, checkout, about
