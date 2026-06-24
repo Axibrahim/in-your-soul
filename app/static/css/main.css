@@ -733,7 +733,6 @@ textarea {
   border-radius: var(--radius);
   transition: var(--transition);
   outline: none;
-  -webkit-appearance: none;
 }
 .field input:focus, .field select:focus, .field textarea:focus {
   border-color: var(--accent);
