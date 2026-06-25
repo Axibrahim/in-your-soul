@@ -15,6 +15,7 @@ env/
 
 # Flask / SQLite
 instance/
+*.db
 *.sqlite3
 
 # Environment
