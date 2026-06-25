@@ -3,6 +3,7 @@ from datetime import datetime, timedelta
 from flask import Blueprint, render_template, redirect, url_for, flash, request, jsonify, session
 from flask_login import login_required, current_user
 from app.models import Product, ProductVariant, Order, OrderItem, Address, db
+from app import limiter
 
 cart_bp = Blueprint('cart', __name__)
 
@@ -38,6 +39,7 @@ def view_cart():
 
 
 @cart_bp.route('/add', methods=['POST'])
+@limiter.limit("30 per minute")       # prevents cart spam bots
 def add_to_cart():
     product_id = request.form.get('product_id', type=int)
     size = request.form.get('size', '')
@@ -109,6 +111,7 @@ def cart_count():
 
 @cart_bp.route('/checkout', methods=['GET', 'POST'])
 @login_required
+@limiter.limit("10 per minute")       # prevents checkout abuse
 def checkout():
     cart = get_cart()
     if not cart:

@@ -1,0 +1,11 @@
+{% extends 'base.html' %}
+{% block content %}
+<div style="min-height:100vh;display:flex;align-items:center;justify-content:center;text-align:center;padding:2rem;">
+  <div>
+    <div style="font-family:var(--font-display);font-size:4rem;color:var(--danger);margin-bottom:1rem;">429</div>
+    <h2 style="margin-bottom:1rem;">Too Many Requests</h2>
+    <p style="color:var(--text-dim);margin-bottom:2rem;">Slow down. Try again in a minute.</p>
+    <a href="{{ url_for('main.index') }}" class="btn"><span>GO HOME</span></a>
+  </div>
+</div>
+{% endblock %}

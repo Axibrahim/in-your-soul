@@ -1,11 +1,13 @@
 from flask import Blueprint, render_template, redirect, url_for, flash, request
 from flask_login import login_user, logout_user, login_required, current_user
 from app.models import User, db
+from app import limiter
 
 auth_bp = Blueprint('auth', __name__)
 
 
 @auth_bp.route('/login', methods=['GET', 'POST'])
+@limiter.limit("5 per minute")                          # max 5 login attempts per minute per IP
 def login():
     if current_user.is_authenticated:
         return redirect(url_for('main.index'))
@@ -27,6 +29,7 @@ def login():
 
 
 @auth_bp.route('/register', methods=['GET', 'POST'])
+@limiter.limit("3 per hour")                           # max 3 registrations per hour per IP
 def register():
     if current_user.is_authenticated:
         return redirect(url_for('main.index'))
