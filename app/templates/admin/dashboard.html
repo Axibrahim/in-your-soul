@@ -4,7 +4,9 @@
 
 {% block content %}
 <div style="margin-bottom:2rem;">
-  <h2 style="font-size:1.5rem;margin-bottom:0.35rem;">Welcome back.</h2>
+<h2 style="font-size:1.5rem;margin-bottom:0.35rem;">
+  Welcome back, {{ current_user.first_name }}!
+</h2>
   <p style="color:var(--text-dim);font-size:0.85rem;">Here's what's happening with FREKS right now.</p>
 </div>
 
