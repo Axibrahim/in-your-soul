@@ -66,7 +66,6 @@ Visit: `http://localhost:5000`
 | Role  | User name            | Password     |
 |-------|------------------|-------------|
 | Admin | bahz   | Amro4488348 |
-| Demo  | joo    | Yousef 4488348  |
 
 **Change these immediately in production.**
 
