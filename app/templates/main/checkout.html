@@ -9,40 +9,40 @@
 
     <form method="POST" action="{{ url_for('cart.checkout') }}">
       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-      
-      <div style="display:grid;grid-template-columns:1fr 380px;gap:2rem;align-items:start;" class="checkout-grid">
 
-        <!-- LEFT -->
-        <div style="display:flex;flex-direction:column;gap:2rem;">
+      <div class="checkout-grid">
+
+        <!-- LEFT COLUMN -->
+        <div class="checkout-left">
 
           <!-- SHIPPING ADDRESS -->
-          <div style="background:var(--panel);border:1px solid var(--border);padding:2rem;">
-            <h3 style="font-size:0.75rem;letter-spacing:0.15em;color:var(--text-dim);margin-bottom:1.5rem;">SHIPPING ADDRESS</h3>
+          <div class="checkout-card">
+            <h3 class="checkout-card-title">SHIPPING ADDRESS</h3>
 
             {% if addresses %}
-            <div style="display:flex;flex-direction:column;gap:0.75rem;margin-bottom:1.5rem;">
-              <label style="display:flex;align-items:center;gap:0.75rem;font-family:var(--font-display);font-size:0.7rem;letter-spacing:0.1em;color:var(--text-dim);cursor:pointer;">
-                <input type="radio" name="address_type" value="saved" id="use-saved-address" checked style="accent-color:var(--accent);"/>
+            <div class="address-type-toggle">
+              <label class="toggle-label">
+                <input type="radio" name="address_type" value="saved" id="use-saved-address" checked/>
                 USE SAVED ADDRESS
               </label>
-              <label style="display:flex;align-items:center;gap:0.75rem;font-family:var(--font-display);font-size:0.7rem;letter-spacing:0.1em;color:var(--text-dim);cursor:pointer;">
-                <input type="radio" name="address_type" value="new" id="use-new-address" style="accent-color:var(--accent);"/>
+              <label class="toggle-label">
+                <input type="radio" name="address_type" value="new" id="use-new-address"/>
                 ENTER NEW ADDRESS
               </label>
             </div>
 
             <div id="saved-address-section">
               {% for addr in addresses %}
-              <label style="display:flex;align-items:flex-start;gap:1rem;padding:1rem;border:1px solid var(--border);margin-bottom:0.5rem;cursor:pointer;transition:all 0.2s;" class="addr-option">
-                <input type="radio" name="address_id" value="{{ addr.id }}" {% if addr.is_default %}checked{% endif %} style="margin-top:0.2rem;accent-color:var(--accent);"/>
-                <div>
-                  <div style="font-family:var(--font-display);font-size:0.75rem;color:var(--text);margin-bottom:0.35rem;">{{ addr.label.upper() }}</div>
-                  <div style="font-size:0.85rem;color:var(--text-dim);">{{ addr.street }}, {{ addr.district }}, {{ addr.governorate }}</div>
+              <label class="addr-option">
+                <input type="radio" name="address_id" value="{{ addr.id }}" {% if addr.is_default %}checked{% endif %}/>
+                <div class="addr-option-text">
+                  <div class="addr-label">{{ addr.label.upper() }}</div>
+                  <div class="addr-detail">{{ addr.street }}, {{ addr.city }}, {{ addr.governorate }}</div>
                 </div>
               </label>
               {% endfor %}
             </div>
-            
+
             <div id="new-address-section" style="display:none;">
             {% endif %}
 
@@ -52,13 +52,13 @@
                   <input type="text" name="street" placeholder="123 Street Name"/>
                 </div>
                 <div class="field">
-                  <label>District</label>
-                  <input type="text" name="district" placeholder="District"/>
+                  <label>CITY</label>
+                  <input type="text" name="city" placeholder="Cairo"/>
                 </div>
               </div>
               <div class="field">
                 <label>GOVERNORATE</label>
-                <input type="text" name="governorate" placeholder="Governorate"/>
+                <input type="text" name="governorate" placeholder="Cairo Governorate"/>
               </div>
 
             {% if addresses %}
@@ -66,85 +66,80 @@
             {% endif %}
           </div>
 
-          <!-- PAYMENT -->
-          <div style="background:var(--panel);border:1px solid var(--border);padding:2rem;">
-          <h3 style="font-size:0.75rem;letter-spacing:0.15em;color:var(--text-dim);margin-bottom:1.5rem;">
-            PAYMENT METHOD
-          </h3>
-          <div class="payment-options">
-          <!-- CASH ON DELIVERY -->
-        <label class="payment-option">
-        <input type="radio" name="payment_method" value="cod" checked>
-        <div class="payment-option-info">
-         <div class="payment-option-name">CASH ON DELIVERY</div>
-           <div class="payment-option-desc">
-            Pay when your order arrives at your door.
+          <!-- PAYMENT METHOD -->
+          <div class="checkout-card">
+            <h3 class="checkout-card-title">PAYMENT METHOD</h3>
+            <div class="payment-options">
+
+              <!-- COD -->
+              <label class="payment-option">
+                <input type="radio" name="payment_method" value="cod" checked/>
+                <div class="payment-option-body">
+                  <div class="payment-option-name">CASH ON DELIVERY</div>
+                  <div class="payment-option-desc">Pay when your order arrives at your door.</div>
+                </div>
+                <span class="payment-option-icon">💵</span>
+              </label>
+
+              <!-- VODAFONE CASH -->
+              <label class="payment-option">
+                <input type="radio" name="payment_method" value="vodafone_cash"/>
+                <div class="payment-option-body">
+                  <div class="payment-option-name">VODAFONE CASH</div>
+                  <div class="payment-option-desc">
+                    Transfer to: <strong style="color:var(--text);">01557793954</strong><br/>
+                    Order confirmed after payment is received. 2-hour window to complete.
+                  </div>
+                </div>
+                <span class="payment-option-icon">📱</span>
+              </label>
+
+              <!-- INSTAPAY -->
+              <label class="payment-option">
+                <input type="radio" name="payment_method" value="instapay"/>
+                <div class="payment-option-body">
+                  <div class="payment-option-name">INSTAPAY</div>
+                  <div class="payment-option-desc">
+                    Transfer via InstaPay. Order confirmed after payment. 2-hour window to complete.
+                  </div>
+                  <!-- QR + details shown only when instapay selected -->
+                  <div class="instapay-details" id="instapay-details">
+                    <div class="instapay-inner">
+                      <img
+                        src="{{ url_for('static', filename='images/instapay_qr.jpg') }}"
+                        alt="InstaPay QR Code"
+                        class="instapay-qr"
+                        onerror="this.style.display='none'"
+                      />
+                      <div class="instapay-info">
+                        <div class="instapay-id-label">INSTAPAY ID</div>
+                        <div class="instapay-id">amro.ibrahim232@instapay</div>
+                        <p class="instapay-note">
+                          Scan the QR or use the ID above to send payment,
+                          then our team will verify and confirm your order.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <span class="payment-option-icon">⚡</span>
+              </label>
+
+            </div>
           </div>
-        </div>
-  <span class="payment-option-icon">💵</span>
-</label>
-<!-- VODAFONE CASH -->
-<label class="payment-option">
-  <input type="radio" name="payment_method" value="vodafone_cash">
-  <div class="payment-option-info">
-    <div class="payment-option-name">VODAFONE CASH</div>
-    <div class="payment-option-desc">
-      Transfer to: 01557793954 — Order will be confirmed upon transfer.
-    </div>
-  </div>
 
-  <span class="payment-option-icon">📱</span>
-</label>
-
-<!-- INSTAPAY -->
-<label class="payment-option">
-  <input type="radio" name="payment_method" value="instapay">
-
-  <div class="payment-option-info">
-    <div class="payment-option-name">INSTAPAY</div>
-
-    <div class="payment-option-desc">
-      Transfer to instapay account — Order will be confirmed upon transfer.
-    </div>
-
-    <div id="instapay-qr" style="display:none;margin-top:1rem;">
-      <img
-        src="{{ url_for('static', filename='images/instapay_qr.jpg') }}"
-        alt="InstaPay QR"
-        style="
-          width:220px;
-          max-width:100%;
-          background:white;
-          padding:8px;
-          border:1px solid var(--border);
-        "
-      >
-
-      <p style="margin-top:0.75rem;font-size:0.85rem;color:var(--text-dim);">
-        Scan the QR code or transfer to:
-        <strong>amro.ibrahim232@instapay</strong>
-      </p>
-    </div>
-  </div>
-
-  <span class="payment-option-icon">⚡</span>
-</label>
-
-  </div>
-</div>
-
-
-          <!-- NOTES -->
-          <div style="background:var(--panel);border:1px solid var(--border);padding:2rem;">
-            <h3 style="font-size:0.75rem;letter-spacing:0.15em;color:var(--text-dim);margin-bottom:1rem;">ORDER NOTES (OPTIONAL)</h3>
+          <!-- ORDER NOTES -->
+          <div class="checkout-card">
+            <h3 class="checkout-card-title">ORDER NOTES <span style="font-size:0.6rem;color:var(--muted);letter-spacing:0.1em;">(OPTIONAL)</span></h3>
             <div class="field" style="margin:0;">
               <textarea name="notes" placeholder="Any special instructions?"></textarea>
             </div>
           </div>
-        </div>
+
+        </div><!-- end left -->
 
         <!-- ORDER SUMMARY -->
-        <div class="cart-summary" style="position:sticky;top:5rem;">
+        <div class="cart-summary checkout-summary">
           <h3>YOUR ORDER</h3>
           {% for item in items %}
           <div class="summary-row">
@@ -167,109 +162,222 @@
           <a href="{{ url_for('cart.view_cart') }}" class="btn btn--ghost btn--full" style="margin-top:0.75rem;">
             <span>← BACK TO CART</span>
           </a>
+
+          <!-- REFUND POLICY -->
+          <div style="border-top:1px solid var(--border);margin-top:1.5rem;padding-top:1.25rem;">
+            <div style="font-family:var(--font-display);font-size:0.6rem;letter-spacing:0.15em;color:var(--accent);margin-bottom:0.5rem;">14-DAY REFUND POLICY</div>
+            <div style="font-size:0.78rem;color:var(--text-dim);line-height:1.7;">
+              Unworn items can be returned within 14 days of delivery. Contact us to initiate a return.
+            </div>
+          </div>
         </div>
 
-      </div>
+      </div><!-- end grid -->
     </form>
   </div>
 </div>
 
 <style>
-.addr-option:has(input:checked) {
-    border-color: var(--accent);
-    background: var(--accent-glow);
+/* ── CHECKOUT LAYOUT ───────────────────────────── */
+.checkout-grid {
+  display: grid;
+  grid-template-columns: 1fr 360px;
+  gap: 2rem;
+  align-items: start;
+}
+.checkout-left {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  min-width: 0; /* prevents overflow */
+}
+.checkout-summary {
+  position: sticky;
+  top: 5rem;
 }
 
-.payment-options{
-    display:flex;
-    flex-direction:column;
-    gap:1rem;
+/* ── CARDS ─────────────────────────────────────── */
+.checkout-card {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  padding: 1.75rem;
+}
+.checkout-card-title {
+  font-size: 0.68rem;
+  letter-spacing: 0.18em;
+  color: var(--text-dim);
+  margin-bottom: 1.25rem;
+  font-family: var(--font-display);
+  font-weight: 400;
 }
 
-.payment-option{
-    display:flex;
-    align-items:center;
-    gap:1rem;
-    padding:1.5rem;
-    border:1px solid var(--border);
-    cursor:pointer;
-    transition:.2s;
+/* ── ADDRESS TOGGLE ────────────────────────────── */
+.address-type-toggle {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  margin-bottom: 1.25rem;
+}
+.toggle-label {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-family: var(--font-display);
+  font-size: 0.68rem;
+  letter-spacing: 0.12em;
+  color: var(--text-dim);
+  cursor: pointer;
+}
+.toggle-label input { accent-color: var(--accent); }
+
+/* ── SAVED ADDRESS OPTIONS ─────────────────────── */
+.addr-option {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 1rem;
+  border: 1px solid var(--border);
+  margin-bottom: 0.5rem;
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s;
+}
+.addr-option input { accent-color: var(--accent); margin-top: 0.2rem; flex-shrink: 0; }
+.addr-option:has(input:checked) { border-color: var(--accent); background: var(--accent-glow); }
+.addr-option-text { flex: 1; min-width: 0; }
+.addr-label { font-family: var(--font-display); font-size: 0.75rem; color: var(--text); margin-bottom: 0.35rem; }
+.addr-detail { font-size: 0.83rem; color: var(--text-dim); line-height: 1.5; word-break: break-word; }
+
+/* ── PAYMENT OPTIONS ───────────────────────────── */
+.payment-options { display: flex; flex-direction: column; gap: 0.75rem; }
+
+.payment-option {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: start;
+  gap: 1rem;
+  padding: 1.25rem;
+  border: 1px solid var(--border);
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s;
+  width: 100%;
+}
+.payment-option input[type="radio"] {
+  accent-color: var(--accent);
+  margin-top: 0.2rem;
+  flex-shrink: 0;
+}
+.payment-option:has(input:checked) {
+  border-color: var(--accent);
+  background: var(--accent-glow);
+}
+.payment-option-body { flex: 1; min-width: 0; }
+.payment-option-name {
+  font-family: var(--font-display);
+  font-size: 0.8rem;
+  letter-spacing: 0.12em;
+  color: var(--text);
+  margin-bottom: 0.4rem;
+}
+.payment-option-desc {
+  font-size: 0.82rem;
+  color: var(--text-dim);
+  line-height: 1.6;
+}
+.payment-option-icon { font-size: 1.4rem; margin-top: 0.1rem; }
+
+/* ── INSTAPAY EXPANDABLE ───────────────────────── */
+.instapay-details {
+  display: none;
+  margin-top: 1rem;
+  padding: 1rem;
+  border: 1px solid rgba(118,255,3,0.2);
+  background: rgba(118,255,3,0.04);
+}
+.instapay-details.visible { display: block; }
+
+.instapay-inner {
+  display: flex;
+  gap: 1.25rem;
+  align-items: flex-start;
+  flex-wrap: wrap;
+}
+.instapay-qr {
+  width: 110px;
+  height: 110px;
+  object-fit: contain;
+  border: 1px solid var(--border);
+  background: #fff;
+  padding: 4px;
+  flex-shrink: 0;
+}
+.instapay-info { flex: 1; min-width: 140px; }
+.instapay-id-label {
+  font-family: var(--font-display);
+  font-size: 0.6rem;
+  letter-spacing: 0.2em;
+  color: var(--accent);
+  margin-bottom: 0.35rem;
+}
+.instapay-id {
+  font-family: var(--font-display);
+  font-size: 0.85rem;
+  color: var(--text);
+  margin-bottom: 0.75rem;
+  word-break: break-all;
+}
+.instapay-note {
+  font-size: 0.78rem;
+  color: var(--text-dim);
+  line-height: 1.6;
+  max-width: none;
 }
 
-.payment-option-info{
-    flex:1;
-}
-
-.payment-option-name{
-    font-family:var(--font-display);
-    font-size:.85rem;
-    letter-spacing:.12em;
-}
-
-.payment-option-desc{
-    margin-top:.5rem;
-    color:var(--text-dim);
-    font-size:.9rem;
-    line-height:1.5;
-}
-
-.payment-option-icon{
-    font-size:1.5rem;
-}
-
-.payment-option:has(input:checked){
-    border-color:var(--accent);
-    background:var(--accent-glow);
-}
-
-@media(max-width:768px){
-
-    .checkout-grid{
-        grid-template-columns:1fr !important;
-    }
-
-    .payment-option{
-        padding:1rem;
-    }
-
-    .payment-option-name{
-        font-size:.8rem;
-    }
-
-    .payment-option-desc{
-        font-size:.8rem;
-    }
-
-    .payment-option-icon{
-        font-size:1.2rem;
-    }
-
-    #instapay-qr img{
-        width:180px;
-    }
+/* ── RESPONSIVE ────────────────────────────────── */
+@media (max-width: 768px) {
+  .checkout-grid { grid-template-columns: 1fr; }
+  .checkout-summary { position: static; }
+  .payment-option { grid-template-columns: auto 1fr auto; padding: 1rem; }
+  .instapay-qr { width: 80px; height: 80px; }
 }
 </style>
+
 <script>
-function togglePaymentQR() {
-    const selected = document.querySelector(
-        'input[name="payment_method"]:checked'
-    );
+// Address type toggle
+const savedRadio  = document.getElementById('use-saved-address');
+const newRadio    = document.getElementById('use-new-address');
+const savedSec    = document.getElementById('saved-address-section');
+const newSec      = document.getElementById('new-address-section');
 
-    const qr = document.getElementById('instapay-qr');
-
-    if (!selected || !qr) return;
-
-    qr.style.display =
-        selected.value === 'instapay'
-            ? 'block'
-            : 'none';
+if (savedRadio && newRadio) {
+  savedRadio.addEventListener('change', () => {
+    savedSec.style.display = '';
+    newSec.style.display = 'none';
+  });
+  newRadio.addEventListener('change', () => {
+    savedSec.style.display = 'none';
+    newSec.style.display = '';
+  });
 }
 
-document.querySelectorAll('input[name="payment_method"]')
-    .forEach(input => {
-        input.addEventListener('change', togglePaymentQR);
-    });
+// InstaPay QR toggle
+const instapayDetails = document.getElementById('instapay-details');
 
-togglePaymentQR();
+function updateInstapay() {
+  const selected = document.querySelector('input[name="payment_method"]:checked');
+  if (!instapayDetails) return;
+  if (selected && selected.value === 'instapay') {
+    instapayDetails.classList.add('visible');
+  } else {
+    instapayDetails.classList.remove('visible');
+  }
+}
+
+document.querySelectorAll('input[name="payment_method"]').forEach(input => {
+  input.addEventListener('change', updateInstapay);
+});
+
+// Run on load in case instapay is pre-selected
+updateInstapay();
 </script>
+
 {% endblock %}
