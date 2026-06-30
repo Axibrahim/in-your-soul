@@ -19,6 +19,8 @@ class User(db.Model, UserMixin):
     phone = db.Column(db.String(20))
     is_admin = db.Column(db.Boolean, default=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    session_token = db.Column(db.String(64), nullable=True)
+    session_issued_at = db.Column(db.DateTime, nullable=True)
 
     addresses = db.relationship('Address', backref='user', lazy=True, cascade='all, delete-orphan')
     orders = db.relationship('Order', backref='user', lazy=True)

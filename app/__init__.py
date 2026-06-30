@@ -1,4 +1,4 @@
-from flask import Flask, app
+from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask import jsonify, render_template
 from flask_login import LoginManager
@@ -52,6 +52,9 @@ def create_app(config_name='default'):
     app.register_blueprint(account_bp, url_prefix='/account')
     app.register_blueprint(admin_bp, url_prefix='/admin')
     app.register_blueprint(cart_bp, url_prefix='/cart')
+
+    from app.auth_guard import register_token_hooks
+    register_token_hooks(app)
 
     
 

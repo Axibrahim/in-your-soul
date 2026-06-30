@@ -13,31 +13,33 @@ def seed():
         db.create_all()
 
         # ── ADMIN USER ──────────────────────────────
-        if not User.query.filter_by(email='admin@freks.eg').first():
+        if not User.query.filter_by(username='freks_admin').first():
             admin = User(
                 username='freks_admin',
-                email='admin@freks.eg',
+                phone='01000000000',
                 first_name='FREKS',
                 last_name='Admin',
                 is_admin=True
             )
             admin.set_password('Freks@2025!')
             db.session.add(admin)
-            print('✓ Admin created — email: admin@freks.eg  password: Freks@2025!')
+            print('✓ Admin created — username: freks_admin  password: Freks@2025!')
         else:
             print('· Admin already exists')
 
         # ── DEMO USER ───────────────────────────────
-        if not User.query.filter_by(email='demo@freks.eg').first():
+        if not User.query.filter_by(username='jungle_user').first():
             demo = User(
-                username='jungle_user',
-                email='demo@freks.eg',
-                first_name='Amr',
-                last_name='Cairo',
-            )
+            username='jungle_user',
+            phone='01011111111',
+            first_name='Amr',
+            last_name='Cairo',
+        )
             demo.set_password('Demo@2025!')
             db.session.add(demo)
-            print('✓ Demo user created — email: demo@freks.eg  password: Demo@2025!')
+            print('✓ Demo user created — username: jungle_user  password: Demo@2025!')
+        else:
+            print('· Demo user already exists')
 
         db.session.commit()
 
@@ -142,8 +144,9 @@ def seed():
         db.session.commit()
         print('\n✅ FREKS database seeded successfully!')
         print('\nAdmin login:')
-        print('  Email:    admin@freks.eg')
-        print('  Password: Freks@2025!')
+        print('✓ Admin created — username: freks_admin  password: Freks@2025!')
+        print('\nDemo user login:')
+        print('✓ Demo user created — username: jungle_user  password: Demo@2025!')
 
 if __name__ == '__main__':
     seed()
