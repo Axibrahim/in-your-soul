@@ -233,8 +233,14 @@ document.querySelectorAll('.toggle-admin-btn').forEach(btn => {
 document.querySelectorAll('.set-default-btn').forEach(btn => {
   btn.addEventListener('click', async () => {
     const addrId = btn.dataset.id;
+    const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
     try {
-      const res = await fetch(`/account/addresses/${addrId}/set-default`, { method: 'POST' });
+      const res = await fetch(`/account/addresses/${addrId}/set-default`, {
+        method: 'POST',
+        headers: {
+          'X-CSRFToken': csrfToken
+        }
+      });
       const data = await res.json();
       if (data.success) {
         document.querySelectorAll('.default-badge').forEach(b => b.remove());
