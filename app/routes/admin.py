@@ -1,14 +1,15 @@
-from flask import Blueprint, render_template, redirect, url_for, flash, request, jsonify
+from flask import Blueprint, render_template, redirect, url_for, flash, request, jsonify, current_app
 from flask_login import login_required, current_user
 from app.models import Product, ProductVariant, Category, Order, User, db
 from functools import wraps
-import os
-import re
+import os, re, time, secrets
 from werkzeug.utils import secure_filename
+from PIL import Image
 
 admin_bp = Blueprint('admin', __name__)
 
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'webp', 'gif'}
+ALLOWED_PIL_FORMATS = {'PNG', 'JPEG', 'WEBP', 'GIF'}
 
 
 def admin_required(f):
@@ -29,6 +30,39 @@ def slugify(text):
     text = text.lower()
     text = re.sub(r'[^a-z0-9]+', '-', text)
     return text.strip('-')
+
+
+def save_product_image(file, upload_folder):
+    """
+    Validate that the uploaded file is a genuine image (not just something
+    with a spoofed .jpg extension) by actually decoding it with Pillow, then
+    save a freshly re-encoded copy. Returns the saved filename, or None if
+    the file was rejected.
+    """
+    if not file or not file.filename or not allowed_file(file.filename):
+        return None
+
+    try:
+        image = Image.open(file.stream)
+        image.verify()  # raises if the content isn't a valid image
+        file.stream.seek(0)
+        image = Image.open(file.stream)  # re-open after verify()
+        image_format = image.format
+    except Exception:
+        return None
+
+    if image_format not in ALLOWED_PIL_FORMATS:
+        return None
+
+    base = secure_filename(os.path.splitext(file.filename)[0]) or 'image'
+    ext = image_format.lower().replace('jpeg', 'jpg')
+    filename = f"{base}_{int(time.time())}_{secrets.token_hex(4)}.{ext}"
+
+    if image.mode in ('P', 'RGBA') and image_format == 'JPEG':
+        image = image.convert('RGB')
+
+    image.save(os.path.join(upload_folder, filename))
+    return filename
 
 
 @admin_bp.route('/')
@@ -85,25 +119,18 @@ def add_product():
             is_featured=is_featured
         )
 
-        # Handle images
-        from flask import current_app
         upload_folder = current_app.config['UPLOAD_FOLDER']
-
         for field_name, attr in [('image', 'image_url'), ('image2', 'image_url_2')]:
             file = request.files.get(field_name)
-            if file and file.filename and allowed_file(file.filename):
-                filename = secure_filename(file.filename)
-                # Make unique
-                base, ext = os.path.splitext(filename)
-                import time
-                filename = f"{base}_{int(time.time())}{ext}"
-                file.save(os.path.join(upload_folder, filename))
+            filename = save_product_image(file, upload_folder)
+            if filename:
                 setattr(product, attr, f'/static/images/products/{filename}')
+            elif file and file.filename:
+                flash(f'{field_name}: file was not a valid image and was skipped.', 'danger')
 
         db.session.add(product)
         db.session.flush()
 
-        # Add variants
         sizes = ['XS', 'S', 'M', 'L', 'XL', 'XXL']
         for size in sizes:
             stock = request.form.get(f'stock_{size}', 0, type=int)
@@ -133,20 +160,15 @@ def edit_product(product_id):
         product.is_featured = request.form.get('is_featured') == 'on'
         product.is_active = request.form.get('is_active') == 'on'
 
-        from flask import current_app
         upload_folder = current_app.config['UPLOAD_FOLDER']
-
         for field_name, attr in [('image', 'image_url'), ('image2', 'image_url_2')]:
             file = request.files.get(field_name)
-            if file and file.filename and allowed_file(file.filename):
-                filename = secure_filename(file.filename)
-                base, ext = os.path.splitext(filename)
-                import time
-                filename = f"{base}_{int(time.time())}{ext}"
-                file.save(os.path.join(upload_folder, filename))
+            filename = save_product_image(file, upload_folder)
+            if filename:
                 setattr(product, attr, f'/static/images/products/{filename}')
+            elif file and file.filename:
+                flash(f'{field_name}: file was not a valid image and was skipped.', 'danger')
 
-        # Update variants
         sizes = ['XS', 'S', 'M', 'L', 'XL', 'XXL']
         for size in sizes:
             stock = request.form.get(f'stock_{size}', 0, type=int)

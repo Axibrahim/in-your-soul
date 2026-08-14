@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask, app
 from flask_sqlalchemy import SQLAlchemy
 from flask import jsonify, render_template
 from flask_login import LoginManager
@@ -17,7 +17,11 @@ limiter = Limiter(key_func=get_remote_address, default_limits=["200 per day", "5
 
 def create_app(config_name='default'):
     app = Flask(__name__)
-    app.config.from_object(config[config_name])
+    if config_name == 'production':
+        if app.config['SECRET_KEY'] == 'you-will-never-guess':
+            raise RuntimeError("SECRET_KEY env var must be set in production.")
+        if not os.environ.get('DATABASE_URL'):
+            raise RuntimeError("DATABASE_URL env var must be set in production.")
 
     # Rate manager
     limiter.init_app(app)
@@ -39,6 +43,28 @@ def create_app(config_name='default'):
     login_manager.login_view = 'auth.login'
     login_manager.login_message = 'Please log in to access this page.'
     login_manager.login_message_category = 'info'
+    @app.after_request
+    def set_security_headers(response):
+        response.headers['X-Content-Type-Options'] = 'nosniff'
+        response.headers['X-Frame-Options'] = 'DENY'
+        response.headers['Referrer-Policy'] = 'strict-origin-when-cross-origin'
+        response.headers['Permissions-Policy'] = 'camera=(), microphone=(), geolocation=()'
+        response.headers['Content-Security-Policy'] = (
+            "default-src 'self'; "
+            "img-src 'self' data:; "
+            "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
+            "font-src 'self' https://fonts.gstatic.com; "
+            "script-src 'self'; "
+            "media-src 'self'; "
+            "frame-ancestors 'none'"
+        )
+        if not app.debug:
+            response.headers['Strict-Transport-Security'] = (
+                'max-age=31536000; includeSubDomains'
+            )
+        return response
+
+
 
     # Register blueprints
     from app.routes.main import main_bp

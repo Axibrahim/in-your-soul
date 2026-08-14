@@ -1,6 +1,4 @@
-/* ============================================
-   FREKS — JUNGLE SYSTEM JS
-   ============================================ */
+const CSRF_TOKEN = document.querySelector('meta[name="csrf-token"]')?.content;
 
 // ── NAV SCROLL EFFECT ──────────────────────────
 const navbar = document.getElementById('navbar');
@@ -179,8 +177,14 @@ function showToast(message, type = 'success') {
 
   const flash = document.createElement('div');
   flash.className = `flash flash--${type}`;
-  flash.innerHTML = `<span>${message}</span><button onclick="this.parentElement.remove()">✕</button>`;
-  container.appendChild(flash);
+const span = document.createElement('span');
+span.textContent = message;
+const closeBtn = document.createElement('button');
+closeBtn.textContent = '✕';
+closeBtn.addEventListener('click', () => flash.remove());
+flash.appendChild(span);
+flash.appendChild(closeBtn);  
+container.appendChild(flash);
 
   setTimeout(() => {
     flash.style.opacity = '0';
@@ -195,7 +199,10 @@ document.querySelectorAll('.toggle-product-btn').forEach(btn => {
   btn.addEventListener('click', async () => {
     const productId = btn.dataset.id;
     try {
-      const res = await fetch(`/admin/products/${productId}/toggle`, { method: 'POST' });
+   const res = await fetch(`/admin/products/${productId}/toggle`, {
+    method: 'POST',
+    headers: { 'X-CSRFToken': CSRF_TOKEN }
+        });
       const data = await res.json();
       if (data.success) {
         const badge = btn.closest('tr').querySelector('.product-status-badge');
@@ -217,7 +224,10 @@ document.querySelectorAll('.toggle-admin-btn').forEach(btn => {
   btn.addEventListener('click', async () => {
     const userId = btn.dataset.id;
     try {
-      const res = await fetch(`/admin/users/${userId}/toggle-admin`, { method: 'POST' });
+      const res = await fetch(`/admin/users/${userId}/toggle-admin`, {
+        method: 'POST',
+        headers: { 'X-CSRFToken': CSRF_TOKEN }
+      });
       const data = await res.json();
       if (data.success) {
         btn.textContent = data.is_admin ? 'Remove Admin' : 'Make Admin';
