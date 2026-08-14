@@ -1,4 +1,4 @@
-from flask import Flask, app
+from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask import jsonify, render_template
 from flask_login import LoginManager
@@ -17,6 +17,7 @@ limiter = Limiter(key_func=get_remote_address, default_limits=["200 per day", "5
 
 def create_app(config_name='default'):
     app = Flask(__name__)
+    app.config.from_object(config[config_name])
     if config_name == 'production':
         if app.config['SECRET_KEY'] == 'you-will-never-guess':
             raise RuntimeError("SECRET_KEY env var must be set in production.")

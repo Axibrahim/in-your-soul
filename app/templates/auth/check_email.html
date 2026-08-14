@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="form-page">
+  <div class="form-card">
+    <div class="form-logo">
+      <span class="glitch" data-text="FREKS">FREKS</span>
+    </div>
+    <h1 style="text-align:center; margin-bottom: 0.75rem;">Check Your Email</h1>
+    <p class="form-title" style="letter-spacing: 0.02em; text-transform: none; font-size: 0.85rem; line-height: 1.7;">
+      We sent a verification link to your inbox.<br/>
+      Click it to activate your account.
+    </p>
+
+    <form method="POST" action="{{ url_for('auth.resend_verification') }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+      <button type="submit" class="btn btn--ghost btn--full">Resend Email</button>
+    </form>
+
+    <div class="form-divider">or</div>
+
+    <a href="{{ url_for('auth.login') }}" class="btn btn--primary btn--full">
+      <span>Back to Login</span>
+    </a>
+  </div>
+</div>
+{% endblock %}

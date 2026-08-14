@@ -29,9 +29,7 @@ class Config:
     # Cookie hardening (applies to both the session cookie and the
     # "remember me" cookie)
 
-    OTP_EXPIRY_MINUTES = 5
-    OTP_MAX_ATTEMPTS = 5
-    OTP_RESEND_COOLDOWN_SECONDS = 60
+    EMAIL_VERIFY_MAX_AGE_SECONDS = 3600  # 1 hour
 
     SESSION_COOKIE_HTTPONLY = True
     SESSION_COOKIE_SAMESITE = "Lax"

@@ -4,9 +4,8 @@ from app.auth_guard import issue_session_token, revoke_session_token
 from app.models import User, db
 from app import limiter
 from urllib.parse import urlparse
-from datetime import datetime, timedelta
-from app.email import generate_otp_code, send_otp_email
-from app import bcrypt
+from app.email import generate_verify_token, confirm_verify_token, send_verification_email
+
 
 def _safe_next_url(target):
     """Only allow redirecting to a relative, in-app path (blocks open-redirect)."""
@@ -19,11 +18,12 @@ def _safe_next_url(target):
         return None
     return target
 
+
 auth_bp = Blueprint('auth', __name__)
 
 
 @auth_bp.route('/login', methods=['GET', 'POST'])
-@limiter.limit("5 per minute")                          # max 5 login attempts per minute per IP
+@limiter.limit("5 per minute")
 def login():
     if current_user.is_authenticated:
         return redirect(url_for('main.index'))
@@ -34,6 +34,9 @@ def login():
 
         user = User.query.filter_by(username=username).first()
         if user and user.check_password(password):
+            if not user.email_verified:
+                flash('Please verify your email before logging in.', 'danger')
+                return redirect(url_for('auth.login'))
             login_user(user, remember=bool(remember))
             issue_session_token(user)
             next_page = _safe_next_url(request.args.get('next'))
@@ -46,13 +49,13 @@ def login():
 
 
 @auth_bp.route('/register', methods=['GET', 'POST'])
-@limiter.limit("3 per hour")                           # max 3 registrations per hour per IP
+@limiter.limit("3 per hour")
 def register():
     if current_user.is_authenticated:
         return redirect(url_for('main.index'))
     if request.method == 'POST':
         username = request.form.get('username', '').strip()
-        email = request.form.get('email', '').strip()
+        email = request.form.get('email', '').strip().lower()
         password = request.form.get('password', '')
         confirm = request.form.get('confirm_password', '')
         first_name = request.form.get('first_name', '').strip()
@@ -61,8 +64,7 @@ def register():
         if not all([username, email, password, first_name, last_name]):
             flash('All fields are required.', 'danger')
             return render_template('auth/register.html')
-        
-        # Basic email format check; use a stronger validator in production
+
         if '@' not in email or '.' not in email.split('@')[-1]:
             flash('Please enter a valid email address.', 'danger')
             return render_template('auth/register.html')
@@ -83,7 +85,6 @@ def register():
             flash('Username already taken.', 'danger')
             return render_template('auth/register.html')
 
-        
         user = User(
             username=username,
             email=email,
@@ -92,104 +93,63 @@ def register():
             email_verified=False,
         )
         user.set_password(password)
-
-        code = generate_otp_code()
-        user.otp_code_hash = bcrypt.generate_password_hash(code).decode('utf-8')
-        user.otp_expires_at = datetime.utcnow() + timedelta(
-            minutes=current_app.config['OTP_EXPIRY_MINUTES']
-        )
-        user.otp_last_sent_at = datetime.utcnow()
-        user.otp_attempts = 0
-
         db.session.add(user)
         db.session.commit()
 
-        send_otp_email(email, code)
+        token = generate_verify_token(email)
+        send_verification_email(email, token)
 
-        session['pending_otp_user_id'] = user.id
-        flash('We sent a verification link to your email.', 'info')
-        return redirect(url_for('auth.verify_otp'))
+        session['pending_verify_user_id'] = user.id
+        flash('Check your email for a verification link.', 'info')
+        return redirect(url_for('auth.check_email'))
 
     return render_template('auth/register.html')
 
 
-@auth_bp.route('/verify-otp', methods=['GET', 'POST'])
-@limiter.limit("10 per hour")
-def verify_otp():
-    user_id = session.get('pending_otp_user_id')
-    if not user_id:
-        flash('No pending verification. Please register again.', 'danger')
+@auth_bp.route('/check-email')
+def check_email():
+    if not session.get('pending_verify_user_id'):
+        return redirect(url_for('auth.register'))
+    return render_template('auth/check_email.html')
+
+
+@auth_bp.route('/verify-email/<token>')
+def verify_email(token):
+    email = confirm_verify_token(token)
+    if not email:
+        flash('That verification link is invalid or expired.', 'danger')
+        return redirect(url_for('auth.resend_verification'))
+
+    user = User.query.filter_by(email=email).first()
+    if not user:
+        flash('Account not found.', 'danger')
         return redirect(url_for('auth.register'))
 
-    user = User.query.get(user_id)
-    if not user or user.email_verified:
-        session.pop('pending_otp_user_id', None)
-        return redirect(url_for('auth.login'))
+    if not user.email_verified:
+        user.email_verified = True
+        db.session.commit()
 
-    if request.method == 'POST':
-        entered_code = request.form.get('code', '').strip()
-
-        if not user.otp_code_hash or not user.otp_expires_at:
-            flash('No active code. Please request a new one.', 'danger')
-            return render_template('auth/verify_otp.html')
-
-        if datetime.utcnow() > user.otp_expires_at:
-            flash('Code expired. Please request a new one.', 'danger')
-            return render_template('auth/verify_otp.html')
-
-        if user.otp_attempts >= current_app.config['OTP_MAX_ATTEMPTS']:
-            flash('Too many attempts. Please request a new code.', 'danger')
-            return render_template('auth/verify_otp.html')
-
-        if bcrypt.check_password_hash(user.otp_code_hash, entered_code):
-            user.email_verified = True
-            user.otp_code_hash = None
-            user.otp_expires_at = None
-            user.otp_attempts = 0
-            db.session.commit()
-
-            session.pop('pending_otp_user_id', None)
-            login_user(user)
-            issue_session_token(user)
-            flash('Email verified. Welcome to FREKS.', 'success')
-            return redirect(url_for('main.index'))
-        else:
-            user.otp_attempts += 1
-            db.session.commit()
-            flash('Incorrect code. Please try again.', 'danger')
-
-    return render_template('auth/verify_otp.html')
+    session.pop('pending_verify_user_id', None)
+    login_user(user)
+    issue_session_token(user)
+    flash('Email verified. Welcome to FREKS.', 'success')
+    return redirect(url_for('main.index'))
 
 
-@auth_bp.route('/resend-otp', methods=['POST'])
+@auth_bp.route('/resend-verification', methods=['GET', 'POST'])
 @limiter.limit("5 per hour")
-def resend_otp():
-    user_id = session.get('pending_otp_user_id')
-    if not user_id:
-        return redirect(url_for('auth.register'))
-
-    user = User.query.get(user_id)
-    if not user or user.email_verified:
-        return redirect(url_for('auth.login'))
-
-    cooldown = current_app.config['OTP_RESEND_COOLDOWN_SECONDS']
-    if user.otp_last_sent_at and \
-       (datetime.utcnow() - user.otp_last_sent_at).total_seconds() < cooldown:
-        flash('Please wait before requesting another code.', 'danger')
-        return redirect(url_for('auth.verify_otp'))
-
-    code = generate_otp_code()
-    user.otp_code_hash = bcrypt.generate_password_hash(code).decode('utf-8')
-    user.otp_expires_at = datetime.utcnow() + timedelta(
-        minutes=current_app.config['OTP_EXPIRY_MINUTES']
-    )
-    user.otp_last_sent_at = datetime.utcnow()
-    user.otp_attempts = 0
-    db.session.commit()
-
-    send_otp_email(user.email, code)
-    flash('A new code has been sent to your email.', 'info')
-    return redirect(url_for('auth.verify_otp'))
+def resend_verification():
+    if request.method == 'POST':
+        user_id = session.get('pending_verify_user_id')
+        user = User.query.get(user_id) if user_id else None
+        if user and not user.email_verified:
+            token = generate_verify_token(user.email)
+            send_verification_email(user.email, token)
+            flash('Verification email resent.', 'info')
+        else:
+            flash('Nothing to resend.', 'info')
+        return redirect(url_for('auth.check_email'))
+    return render_template('auth/resend_verification.html')
 
 
 @auth_bp.route('/logout')

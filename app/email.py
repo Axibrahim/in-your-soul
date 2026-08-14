@@ -1,20 +1,31 @@
 import os
-import secrets
 import smtplib
 from email.message import EmailMessage
+from flask import current_app, url_for
+from itsdangerous import URLSafeTimedSerializer
 
 
-def generate_otp_code() -> str:
-    """6-digit numeric OTP using a cryptographically secure RNG."""
-    return f"{secrets.randbelow(1_000_000):06d}"
+def _serializer():
+    return URLSafeTimedSerializer(current_app.config['SECRET_KEY'])
 
 
-def send_otp_email(to_email: str, code: str) -> bool:
-    """
-    Send the OTP via Gmail SMTP. Expects GMAIL_ADDRESS and GMAIL_PASSWORD
-    (an App Password, not your normal Gmail password) environment variables.
-    Returns True on success, False on error.
-    """
+def generate_verify_token(email: str) -> str:
+    return _serializer().dumps(email, salt='email-verify')
+
+
+def confirm_verify_token(token: str):
+    """Returns the email if the token is valid and not expired, else None."""
+    try:
+        return _serializer().loads(
+            token,
+            salt='email-verify',
+            max_age=current_app.config['EMAIL_VERIFY_MAX_AGE_SECONDS'],
+        )
+    except Exception:
+        return None
+
+
+def send_verification_email(to_email: str, token: str) -> bool:
     gmail_user = os.environ.get('GMAIL_ADDRESS')
     gmail_password = os.environ.get('GMAIL_PASSWORD')
 
@@ -22,16 +33,16 @@ def send_otp_email(to_email: str, code: str) -> bool:
         print("GMAIL credentials are not configured.")
         return False
 
-    expiry_minutes = os.environ.get('OTP_EXPIRY_MINUTES', '5')
-    subject = 'Your FREKS verification code'
+    link = url_for('auth.verify_email', token=token, _external=True)
     body = (
-        f"Your FREKS verification code is {code}. "
-        f"It expires in {expiry_minutes} minutes.\n\n"
-        f"If you didn't request this, please ignore this email."
+        f"Welcome to FREKS.\n\n"
+        f"Click the link below to verify your email address. "
+        f"It expires in 1 hour.\n\n{link}\n\n"
+        f"If you didn't create this account, ignore this email."
     )
 
     msg = EmailMessage()
-    msg['Subject'] = subject
+    msg['Subject'] = 'Verify your FREKS account'
     msg['From'] = gmail_user
     msg['To'] = to_email
     msg.set_content(body)

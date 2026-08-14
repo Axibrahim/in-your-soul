@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="form-page">
+  <div class="form-card">
+    <div class="form-logo">
+      <span class="glitch" data-text="FREKS">FREKS</span>
+    </div>
+    <h1 style="text-align:center; margin-bottom: 0.75rem;">Resend Verification</h1>
+    <p class="form-title" style="letter-spacing: 0.02em; text-transform: none; font-size: 0.85rem; line-height: 1.7;">
+      If your link expired, request a new one below.
+    </p>
+
+    <form method="POST">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+      <button type="submit" class="btn btn--primary btn--full">Resend Link</button>
+    </form>
+
+    <div class="form-divider">or</div>
+
+    <a href="{{ url_for('auth.login') }}" class="btn btn--ghost btn--full">
+      <span>Back to Login</span>
+    </a>
+  </div>
+</div>
+{% endblock %}
