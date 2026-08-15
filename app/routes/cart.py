@@ -86,7 +86,21 @@ def update_cart():
         if quantity <= 0:
             del cart[key]
         else:
-            cart[key]['quantity'] = quantity
+            item = cart[key]
+            variant = ProductVariant.query.filter_by(
+                product_id=item['product_id'],
+                size=item['size']
+            ).first()
+            max_stock = variant.stock if variant else 0
+
+            if quantity > max_stock:
+                flash(f'Only {max_stock} in stock — quantity capped.', 'danger')
+                quantity = max_stock
+
+            if quantity <= 0:
+                del cart[key]
+            else:
+                cart[key]['quantity'] = quantity
         save_cart(cart)
 
     return redirect(url_for('cart.view_cart'))

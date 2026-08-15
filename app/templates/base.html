@@ -81,7 +81,7 @@
       {% for cat, msg in messages %}
         <div class="flash flash--{{ cat }}">
           <span>{{ msg }}</span>
-          <button onclick="this.parentElement.remove()">✕</button>
+          <button class="flash-close">✕</button>
         </div>
       {% endfor %}
     </div>

@@ -92,9 +92,9 @@
       </button>
       {% endif %}
 
-      <a href="{{ url_for('cart.checkout') }}" class="btn btn--full" style="margin-bottom:2rem;">
+      <button type="button" id="buy-now-btn" class="btn btn--full" style="margin-bottom:2rem;" data-product-id="{{ product.id }}">
         <span>BUY NOW</span>
-      </a>
+      </button>
 
       <!-- PAYMENT INFO -->
       <div style="border-top:1px solid var(--border);padding-top:1.5rem;margin-top:1rem;">
@@ -122,8 +122,8 @@
       </div>
       <div class="products-grid">
         {% for p in related %}
-        <div class="product-card reveal" onclick="window.location='{{ url_for('main.product_detail', product_id=p.id) }}'">
-          <div class="product-card-img">
+        <div class="product-card reveal" data-href="{{ url_for('main.product_detail', product_id=p.id) }}"></div>
+        <div class="product-card-img">
             {% if p.image_url %}
               <img src="{{ p.image_url }}" alt="{{ p.name }}" loading="lazy"/>
             {% else %}

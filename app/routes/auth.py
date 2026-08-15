@@ -56,17 +56,22 @@ def register():
     if request.method == 'POST':
         username = request.form.get('username', '').strip()
         email = request.form.get('email', '').strip().lower()
+        phone = request.form.get('phone', '').strip()
         password = request.form.get('password', '')
         confirm = request.form.get('confirm_password', '')
         first_name = request.form.get('first_name', '').strip()
         last_name = request.form.get('last_name', '').strip()
 
-        if not all([username, email, password, first_name, last_name]):
+        if not all([username, email, phone, password, first_name, last_name]):
             flash('All fields are required.', 'danger')
             return render_template('auth/register.html')
 
         if '@' not in email or '.' not in email.split('@')[-1]:
             flash('Please enter a valid email address.', 'danger')
+            return render_template('auth/register.html')
+
+        if not phone.replace('+', '').replace(' ', '').isdigit() or len(phone) < 8:
+            flash('Please enter a valid phone number.', 'danger')
             return render_template('auth/register.html')
 
         if password != confirm:
@@ -90,6 +95,7 @@ def register():
             email=email,
             first_name=first_name,
             last_name=last_name,
+            phone=phone,
             email_verified=False,
         )
         user.set_password(password)

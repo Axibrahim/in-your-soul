@@ -32,6 +32,33 @@ async function updateCartCount() {
 }
 updateCartCount();
 
+
+// ── CLOSE SERVER-RENDERED FLASH MESSAGES ───────
+document.querySelectorAll('.flash-close').forEach(btn => {
+  btn.addEventListener('click', () => btn.closest('.flash').remove());
+});
+
+
+// ── INSTAPAY QR TOGGLE ──────────────────────────
+const instapayDetails = document.getElementById('instapay-details');
+
+function updateInstapay() {
+  const selected = document.querySelector('input[name="payment_method"]:checked');
+  if (!instapayDetails) return;
+  if (selected && selected.value === 'instapay') {
+    instapayDetails.classList.add('visible');
+  } else {
+    instapayDetails.classList.remove('visible');
+  }
+}
+
+document.querySelectorAll('input[name="payment_method"]').forEach(input => {
+  input.addEventListener('change', updateInstapay);
+});
+
+updateInstapay();
+
+
 // ── AUTO-DISMISS FLASH ─────────────────────────
 setTimeout(() => {
   document.querySelectorAll('.flash').forEach(el => {
@@ -165,6 +192,45 @@ if (addToCartForm) {
   });
 }
 
+// ── NEW: BUY NOW ─────────────────────────────────
+const buyNowBtn = document.getElementById('buy-now-btn');
+if (buyNowBtn) {
+  buyNowBtn.addEventListener('click', async () => {
+    const sizeInput = document.getElementById('selected-size');
+    if (!sizeInput?.value) {
+      showToast('Please select a size.', 'danger');
+      return;
+    }
+
+    buyNowBtn.disabled = true;
+    const originalText = buyNowBtn.innerHTML;
+    buyNowBtn.innerHTML = '<span>ADDING...</span>';
+
+    try {
+      const formData = new FormData();
+      formData.append('product_id', buyNowBtn.dataset.productId);
+      formData.append('size', sizeInput.value);
+      formData.append('quantity', 1);
+      formData.append('csrf_token', CSRF_TOKEN);
+
+      const res = await fetch('/cart/add', { method: 'POST', body: formData });
+      const data = await res.json();
+
+      if (data.success) {
+        window.location.href = '/cart/checkout';
+      } else {
+        showToast(data.message, 'danger');
+        buyNowBtn.innerHTML = originalText;
+        buyNowBtn.disabled = false;
+      }
+    } catch {
+      showToast('Something went wrong.', 'danger');
+      buyNowBtn.innerHTML = originalText;
+      buyNowBtn.disabled = false;
+    }
+  });
+}
+
 // ── TOAST ──────────────────────────────────────
 function showToast(message, type = 'success') {
   const container = document.getElementById('flash-container') || (() => {
@@ -274,6 +340,13 @@ document.querySelectorAll('.product-card').forEach((card, i) => {
   });
   card.addEventListener('mouseleave', () => {
     card.style.boxShadow = '';
+  });
+});
+
+// ── NEW: CLICKABLE PRODUCT CARDS (related products) ──
+document.querySelectorAll('.product-card[data-href]').forEach(card => {
+  card.addEventListener('click', () => {
+    window.location.href = card.dataset.href;
   });
 });
 

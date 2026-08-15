@@ -37,7 +37,7 @@
                 <input type="radio" name="address_id" value="{{ addr.id }}" {% if addr.is_default %}checked{% endif %}/>
                 <div class="addr-option-text">
                   <div class="addr-label">{{ addr.label.upper() }}</div>
-                  <div class="addr-detail">{{ addr.street }}, {{ addr.city }}, {{ addr.governorate }}</div>
+                  <div class="addr-detail">{{ addr.street }}, {{ addr.district }}, {{ addr.governorate }}</div>
                 </div>
               </label>
               {% endfor %}
@@ -45,21 +45,20 @@
 
             <div id="new-address-section" style="display:none;">
             {% endif %}
-
-              <div class="field-row">
-                <div class="field">
-                  <label>STREET ADDRESS</label>
-                  <input type="text" name="street" placeholder="123 Street Name"/>
-                </div>
-                <div class="field">
-                  <label>CITY</label>
-                  <input type="text" name="city" placeholder="Cairo"/>
-                </div>
-              </div>
-              <div class="field">
-                <label>GOVERNORATE</label>
-                <input type="text" name="governorate" placeholder="Cairo Governorate"/>
-              </div>
+<div class="field-row">
+  <div class="field">
+    <label>STREET ADDRESS</label>
+    <input type="text" name="street" placeholder="123 Street Name"/>
+  </div>
+  <div class="field">
+    <label>DISTRICT</label>
+    <input type="text" name="district" placeholder="e.g. GIZA"/>
+  </div>
+  </div>
+    <div class="field">
+      <label>GOVERNORATE</label>
+      <input type="text" name="governorate" placeholder="Governorate"/>
+    </div>
 
             {% if addresses %}
             </div>
@@ -113,7 +112,7 @@
                       />
                       <div class="instapay-info">
                         <div class="instapay-id-label">INSTAPAY ID</div>
-                        <div class="instapay-id">amro.ibrahim232@instapay</div>
+                        <div class="instapay-id">amro.ibrahim232</div>
                         <p class="instapay-note">
                           Scan the QR or use the ID above to send payment,
                           then our team will verify and confirm your order.
@@ -341,43 +340,6 @@
 }
 </style>
 
-<script>
-// Address type toggle
-const savedRadio  = document.getElementById('use-saved-address');
-const newRadio    = document.getElementById('use-new-address');
-const savedSec    = document.getElementById('saved-address-section');
-const newSec      = document.getElementById('new-address-section');
 
-if (savedRadio && newRadio) {
-  savedRadio.addEventListener('change', () => {
-    savedSec.style.display = '';
-    newSec.style.display = 'none';
-  });
-  newRadio.addEventListener('change', () => {
-    savedSec.style.display = 'none';
-    newSec.style.display = '';
-  });
-}
-
-// InstaPay QR toggle
-const instapayDetails = document.getElementById('instapay-details');
-
-function updateInstapay() {
-  const selected = document.querySelector('input[name="payment_method"]:checked');
-  if (!instapayDetails) return;
-  if (selected && selected.value === 'instapay') {
-    instapayDetails.classList.add('visible');
-  } else {
-    instapayDetails.classList.remove('visible');
-  }
-}
-
-document.querySelectorAll('input[name="payment_method"]').forEach(input => {
-  input.addEventListener('change', updateInstapay);
-});
-
-// Run on load in case instapay is pre-selected
-updateInstapay();
-</script>
 
 {% endblock %}
