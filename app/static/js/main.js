@@ -343,9 +343,11 @@ document.querySelectorAll('.product-card').forEach((card, i) => {
   });
 });
 
-// ── NEW: CLICKABLE PRODUCT CARDS (related products) ──
+
+// ── CLICKABLE PRODUCT CARDS ─────────────────────
 document.querySelectorAll('.product-card[data-href]').forEach(card => {
-  card.addEventListener('click', () => {
+  card.addEventListener('click', (e) => {
+    if (e.target.closest('a')) return; // let the real link handle its own click
     window.location.href = card.dataset.href;
   });
 });

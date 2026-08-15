@@ -44,8 +44,8 @@
     {% if products.items %}
     <div class="products-grid">
       {% for product in products.items %}
-      <div class="product-card reveal" onclick="window.location='{{ url_for('main.product_detail', product_id=product.id) }}'">
-        <div class="product-card-img">
+      <div class="product-card reveal" data-href="{{ url_for('main.product_detail', product_id=product.id) }}"></div>
+      <div class="product-card-img">
           {% if product.image_url %}
             <img src="{{ product.image_url }}" alt="{{ product.name }}" loading="lazy"/>
             {% if product.image_url_2 %}
@@ -81,8 +81,8 @@
           </div>
         </div>
         <div class="product-card-actions">
-          <a href="{{ url_for('main.product_detail', product_id=product.id) }}" class="btn btn--full" onclick="event.stopPropagation()">
-            <span>VIEW PIECE</span>
+          <a href="{{ url_for('main.product_detail', product_id=product.id) }}" class="btn btn--full">
+              <span>VIEW PIECE</span>
           </a>
         </div>
       </div>
