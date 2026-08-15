@@ -35,14 +35,14 @@ def send_verification_email(to_email: str, token: str) -> bool:
 
     link = url_for('auth.verify_email', token=token, _external=True)
     body = (
-        f"Welcome to FREKS.\n\n"
+        f"Welcome to IN YOUR SOUL.\n\n"
         f"Click the link below to verify your email address. "
         f"It expires in 1 hour.\n\n{link}\n\n"
         f"If you didn't create this account, ignore this email."
     )
 
     msg = EmailMessage()
-    msg['Subject'] = 'Verify your FREKS account'
+    msg['Subject'] = 'Verify your IN YOUR SOUL account'
     msg['From'] = gmail_user
     msg['To'] = to_email
     msg.set_content(body)
