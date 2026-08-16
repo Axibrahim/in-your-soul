@@ -4,7 +4,14 @@ from app.auth_guard import issue_session_token, revoke_session_token
 from app.models import User, db
 from app import limiter
 from urllib.parse import urlparse
-from app.email import generate_verify_token, confirm_verify_token, send_verification_email
+from app.email import (
+    generate_verify_token,
+    confirm_verify_token,
+    send_verification_email,
+    generate_reset_token,
+    confirm_reset_token,
+    send_reset_email,
+)
 
 
 def _safe_next_url(target):
@@ -46,6 +53,64 @@ def login():
             flash('Invalid username or password.', 'danger')
 
     return render_template('auth/login.html')
+
+
+@auth_bp.route('/forgot-password', methods=['GET', 'POST'])
+@limiter.limit("5 per hour")
+def forgot_password():
+    if current_user.is_authenticated:
+        return redirect(url_for('main.index'))
+
+    if request.method == 'POST':
+        email = request.form.get('email', '').strip().lower()
+        user = User.query.filter_by(email=email).first() if email else None
+
+        if user and user.email_verified:
+            token = generate_reset_token(user.email)
+            send_reset_email(user.email, token)
+
+        flash('If that verified email belongs to an account, a reset link has been sent.', 'info')
+        return redirect(url_for('auth.login'))
+
+    return render_template('auth/forgot_password.html')
+
+
+@auth_bp.route('/reset-password/<token>', methods=['GET', 'POST'])
+@limiter.limit("5 per hour")
+def reset_password(token):
+    if current_user.is_authenticated:
+        return redirect(url_for('main.index'))
+
+    email = confirm_reset_token(token)
+    if not email:
+        flash('That password reset link is invalid or expired.', 'danger')
+        return redirect(url_for('auth.forgot_password'))
+
+    user = User.query.filter_by(email=email).first()
+    if not user or not user.email_verified:
+        flash('That password reset link is invalid or expired.', 'danger')
+        return redirect(url_for('auth.forgot_password'))
+
+    if request.method == 'POST':
+        password = request.form.get('password', '')
+        confirm = request.form.get('confirm_password', '')
+
+        if password != confirm:
+            flash('Passwords do not match.', 'danger')
+            return render_template('auth/reset_password.html', token=token)
+
+        if len(password) < 8:
+            flash('Password must be at least 8 characters.', 'danger')
+            return render_template('auth/reset_password.html', token=token)
+
+        user.set_password(password)
+        user.session_token = None
+        user.session_issued_at = None
+        db.session.commit()
+        flash('Your password has been reset. You can log in now.', 'success')
+        return redirect(url_for('auth.login'))
+
+    return render_template('auth/reset_password.html', token=token)
 
 
 @auth_bp.route('/register', methods=['GET', 'POST'])

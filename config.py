@@ -30,6 +30,7 @@ class Config:
     # "remember me" cookie)
 
     EMAIL_VERIFY_MAX_AGE_SECONDS = 3600  # 1 hour
+    PASSWORD_RESET_MAX_AGE_SECONDS = 1800  # 30 minutes
 
     SESSION_COOKIE_HTTPONLY = True
     SESSION_COOKIE_SAMESITE = "Lax"

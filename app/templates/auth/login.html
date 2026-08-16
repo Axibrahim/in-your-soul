@@ -29,6 +29,10 @@
         <label for="remember">Keep me logged in</label>
       </div>
 
+      <div style="text-align:right; margin:-0.4rem 0 1rem;">
+        <a href="{{ url_for('auth.forgot_password') }}" style="color:var(--accent); font-size:0.8rem;">Forgot password?</a>
+      </div>
+
       <button type="submit" class="btn btn--primary btn--full">
         <span>Login</span>
       </button>

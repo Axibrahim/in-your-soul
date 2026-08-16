@@ -57,3 +57,52 @@ def send_verification_email(to_email: str, token: str) -> bool:
     except Exception as e:
         print(f"Failed to send verification email: {e}")
         return False
+
+def generate_reset_token(email: str) -> str:
+    return _serializer().dumps(email, salt='password-reset')
+
+
+def confirm_reset_token(token: str):
+    """Returns the email if valid and not expired, else None."""
+    try:
+        return _serializer().loads(
+            token,
+            salt='password-reset',
+            max_age=current_app.config['PASSWORD_RESET_MAX_AGE_SECONDS'],
+        )
+    except Exception:
+        return None
+
+
+def send_reset_email(to_email: str, token: str) -> bool:
+    gmail_user = os.environ.get('GMAIL_ADDRESS')
+    gmail_password = os.environ.get('GMAIL_PASSWORD')
+
+    if not all([gmail_user, gmail_password]):
+        print("GMAIL credentials are not configured.")
+        return False
+
+    link = url_for('auth.reset_password', token=token, _external=True)
+    body = (
+        f"We received a request to reset your IN YOUR SOUL password.\n\n"
+        f"Click the link below to set a new password. It expires in 30 minutes.\n\n{link}\n\n"
+        f"If you didn't request this, you can safely ignore this email — "
+        f"your password will not be changed."
+    )
+
+    msg = EmailMessage()
+    msg['Subject'] = 'Reset your IN YOUR SOUL password'
+    msg['From'] = gmail_user
+    msg['To'] = to_email
+    msg.set_content(body)
+
+    try:
+        with smtplib.SMTP('smtp.gmail.com', 587, timeout=10) as smtp:
+            smtp.ehlo()
+            smtp.starttls()
+            smtp.login(gmail_user, gmail_password)
+            smtp.send_message(msg)
+        return True
+    except Exception as e:
+        print(f"Failed to send reset email: {e}")
+        return False
