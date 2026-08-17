@@ -352,6 +352,52 @@ document.querySelectorAll('.product-card[data-href]').forEach(card => {
   });
 });
 
+// ── NEW: HOMEPAGE HERO LOGO FADE + CLICKABLE CARDS ──
+(() => {
+  const hero = document.querySelector('.hero');
+  const logo = document.querySelector('.hero-background-logo');
+  const cards = document.querySelectorAll('.product-card--clickable');
+
+  const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
+
+  const updateHeroLogo = () => {
+    if (!hero || !logo) return;
+    const rect = hero.getBoundingClientRect();
+    const fadeDistance = Math.max(hero.offsetHeight * 0.65, window.innerHeight * 0.65);
+    const progress = clamp((-rect.top) / fadeDistance, 0, 1);
+    logo.style.opacity = String(0.13 * (1 - progress));
+  };
+
+  let heroTicking = false;
+  const onHeroScroll = () => {
+    if (heroTicking) return;
+    heroTicking = true;
+    window.requestAnimationFrame(() => {
+      updateHeroLogo();
+      heroTicking = false;
+    });
+  };
+
+  updateHeroLogo();
+  window.addEventListener('scroll', onHeroScroll, { passive: true });
+  window.addEventListener('resize', updateHeroLogo);
+
+  cards.forEach((card) => {
+    const url = card.dataset.productUrl;
+    if (!url) return;
+    card.addEventListener('click', (event) => {
+      if (event.target.closest('a, button, input, select, textarea')) return;
+      window.location.href = url;
+    });
+    card.addEventListener('keydown', (event) => {
+      if (event.key !== 'Enter' && event.key !== ' ') return;
+      if (event.target.closest('a, button, input, select, textarea')) return;
+      event.preventDefault();
+      window.location.href = url;
+    });
+  });
+})();
+
 // ── SMOOTH ANCHOR SCROLL ───────────────────────
 document.querySelectorAll('a[href^="#"]').forEach(link => {
   link.addEventListener('click', e => {

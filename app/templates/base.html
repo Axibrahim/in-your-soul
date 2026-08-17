@@ -6,6 +6,9 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>IN YOUR SOUL — Online — STORE</title>
+  <link rel="icon"
+      type="image/png"
+      href="{{ url_for('static', filename='images/favicorn.png') }}?v=2">
   <meta name="description" content="IN YOUR SOUL — Egyptian rave & techno streetwear. Oversized drops built for the underground."/>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
@@ -106,8 +109,8 @@
     <div class="footer-cols">
       <div class="footer-col">
         <h4>PLATFORMS</h4>
-        <a href="https://www.instagram.com/3mr_ibrahim.8/" target="_blank">Instagram</a>
-        <a href="https://www.instagram.com/3mr_ibrahim.8/" target="_blank">Tik-tok</a>        
+        <a href="https://www.instagram.com/inyoursoul.eg/" target="_blank">Instagram</a>
+        <a href="https://www.instagram.com/inyoursoul.eg/" target="_blank">Tik-tok</a>        
         <a href="{{ url_for('main.about') }}">About</a>
       </div>
       <div class="footer-col">
@@ -134,7 +137,7 @@
   </div>
 </footer>
 
-<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+<script src="{{ url_for('static', filename='js/main.js') }}?v=2"></script>
 {% block scripts %}{% endblock %}
 </body>
 </html>

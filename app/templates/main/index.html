@@ -3,40 +3,53 @@
 
 {% block content %}
 
+{% set shop_url = url_for('main.shop') %}
+{% set about_url = url_for('main.about') %}
+
 <!-- HERO -->
 <section class="hero">
   <!-- Cyber Rain Canvas -->
   <canvas class="cyber-canvas" id="cyber-canvas"></canvas>
 
-  <!-- Video Background -->
-  <div class="hero-video-wrap">
-    <video autoplay muted loop playsinline preload="auto" id="hero-video">
-      <source src="{{ url_for('static', filename='videos/hero.mp4') }}" type="video/mp4"/>
-    </video>
+  <!-- Faded Logo Background -->
+  <div class="hero-image-wrap" aria-hidden="true">
+    <img
+      src="{{ url_for('static', filename='images/logo.png') }}"
+      alt=""
+      class="hero-background-logo"
+    />
   </div>
+
   <div class="hero-overlay"></div>
 
-  <!-- Nav placeholder height -->
   <div class="hero-content">
     <div class="hero-eyebrow reveal">EGYPTIAN BRAND — EST. 2025</div>
+
     <h1 class="hero-title reveal">
       IN YOUR <span class="accent glitch" data-text="SOUL">SOUL</span>
     </h1>
+
+    <p class="hero-subtitle reveal">
+      Built for the rave. Worn at Afterlife.
+      Egyptian underground streetwear dropping in oversize silhouettes.
+    </p>
+
     <div class="hero-cta reveal">
-      <a href="{{ url_for('main.shop') }}" class="btn btn--lg">
+      <a href="{{ shop_url }}" class="btn btn--lg">
         <span>SHOP NOW</span>
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <line x1="5" y1="12" x2="19" y2="12"/>
+          <polyline points="12 5 19 12 12 19"/>
+        </svg>
       </a>
-      <a href="{{ url_for('main.about') }}" class="btn btn--ghost btn--lg">
+
+      <a href="{{ about_url }}" class="btn btn--ghost btn--lg">
         <span>OUR STORY</span>
       </a>
     </div>
   </div>
-  <p class="hero-subtitle reveal">
-      Built for the rave. Worn at Afterlife. 
-      Egyptian underground streetwear dropping in oversize silhouettes.
-    </p>
-  <div class="hero-scroll">
+
+  <div class="hero-scroll" aria-hidden="true">
     <span>SCROLL</span>
     <svg width="16" height="24" viewBox="0 0 16 24" fill="none" stroke="currentColor" stroke-width="1.5">
       <rect x="1" y="1" width="14" height="22" rx="7"/>
@@ -46,14 +59,26 @@
 </section>
 
 <!-- MARQUEE -->
-<div class="marquee-wrap">
+<div class="marquee-wrap" aria-label="FREKS collection keywords">
   <div class="marquee">
-    {% for item in ['OVERSIZED TEES', 'CAIRO UNDERGROUND', 'AFTERLIFE READY', 'TECHNO CULTURE', 'RAVE ESSENTIALS', 'JUNGLE SYSTEM', 'EGYPTIAN MADE', 'HARDER FASTER', 'OVERSIZED TEES', 'CAIRO UNDERGROUND', 'AFTERLIFE READY', 'TECHNO CULTURE', 'RAVE ESSENTIALS', 'JUNGLE SYSTEM', 'EGYPTIAN MADE', 'HARDER FASTER'] %}
-      <span class="marquee-item">{{ item }}</span>
-    {% endfor %}
+    <span class="marquee-item">OVERSIZED TEES</span>
+    <span class="marquee-item">CAIRO UNDERGROUND</span>
+    <span class="marquee-item">AFTERLIFE READY</span>
+    <span class="marquee-item">TECHNO CULTURE</span>
+    <span class="marquee-item">RAVE ESSENTIALS</span>
+    <span class="marquee-item">JUNGLE SYSTEM</span>
+    <span class="marquee-item">EGYPTIAN MADE</span>
+    <span class="marquee-item">HARDER FASTER</span>
+    <span class="marquee-item">OVERSIZED TEES</span>
+    <span class="marquee-item">CAIRO UNDERGROUND</span>
+    <span class="marquee-item">AFTERLIFE READY</span>
+    <span class="marquee-item">TECHNO CULTURE</span>
+    <span class="marquee-item">RAVE ESSENTIALS</span>
+    <span class="marquee-item">JUNGLE SYSTEM</span>
+    <span class="marquee-item">EGYPTIAN MADE</span>
+    <span class="marquee-item">HARDER FASTER</span>
   </div>
 </div>
-
 
 <!-- ALL PRODUCTS -->
 {% if products %}
@@ -61,60 +86,73 @@
   <div class="section-inner">
     <div class="section-header reveal">
       <div class="section-eyebrow">THE ARCHIVE</div>
-        <h2 class="section-title">All Pieces</h2>
+      <h2 class="section-title">All Pieces</h2>
       <div class="section-divider"></div>
-      </div>
-    <div class="products-grid">
-      {% for product in products %}
-        <div class="product-card reveal" onclick="window.location.href='{{ url_for('main.product_detail', product_id=product.id) }}'">
-          <div class="product-card-img">
-        {% if product.image_url %}
-            <img src="{{ product.image_url }}" alt="{{ product.name }}" loading="lazy"/>
-              {% if product.image_url_2 %}
-                <div class="product-card-img-2">
-                  <img src="{{ product.image_url_2 }}" alt="{{ product.name }}" loading="lazy"/>
-              </div>
-            {% endif %}
-          {% else %}
-            <div style="width:100%;height:100%;background:#0a100a;display:flex;align-items:center;justify-content:center;">
-            <span style="font-family:var(--font-display);font-size:0.7rem;color:var(--muted)">FREKS</span>
-            </div>
-          {% endif %}
-          {% if product.get_total_stock() == 0 %}
-            <span class="product-badge" style="background:var(--muted);color:var(--text-dim);">SOLD OUT</span>
-          {% endif %}
-          </div>
-          <div class="product-card-body">
-          <div class="product-name">{{ product.name }}</div>
-          <div class="product-price">{{ "%.0f"|format(product.price) }} EGP</div>
-
-        </div>
-
-        <div class="product-card-actions">
-
-          <a href="{{ url_for('main.product_detail', product_id=product.id) }}" class="btn btn--full" onclick="event.stopPropagation()">
-
-            <span>VIEW</span>
-
-          </a>
-
-        </div>
-
-      </div>
-
-      {% endfor %}
-
     </div>
 
+    <div class="products-grid">
+      {% for product in products %}
+        {% set product_url = url_for('main.product_detail', product_id=product.id) %}
+        <div
+          class="product-card reveal product-card--clickable"
+          data-product-url="{{ product_url }}"
+          role="link"
+          tabindex="0"
+        >
+          <div class="product-card-img">
+            {% if product.image_url %}
+              <img
+                src="{{ product.image_url }}"
+                alt="{{ product.name }}"
+                loading="lazy"
+              />
+
+              {% if product.image_url_2 %}
+                <div class="product-card-img-2">
+                  <img
+                    src="{{ product.image_url_2 }}"
+                    alt="{{ product.name }} alternate view"
+                    loading="lazy"
+                  />
+                </div>
+              {% endif %}
+            {% else %}
+              <div class="product-card-placeholder">
+                <span class="product-card-placeholder-label">FREKS</span>
+              </div>
+            {% endif %}
+
+            {% if product.get_total_stock() == 0 %}
+              <span
+                class="product-badge product-badge--sold-out"
+              >
+                SOLD OUT
+              </span>
+            {% endif %}
+          </div>
+
+          <div class="product-card-body">
+            <div class="product-name">{{ product.name }}</div>
+            <div class="product-price">{{ "%.0f"|format(product.price) }} EGP</div>
+          </div>
+
+          <div class="product-card-actions">
+            <a
+              href="{{ product_url }}"
+              class="btn btn--full"
+            >
+              <span>VIEW</span>
+            </a>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
   </div>
-
 </section>
-
 {% endif %}
 
-
 <!-- CAPABILITIES / WHY FREKS -->
-<section class="section" style="background:var(--panel); border-top:1px solid var(--border); border-bottom:1px solid var(--border);">
+<section class="section capabilities-section">
   <div class="section-inner">
     <div class="section-header reveal">
       <div class="section-eyebrow">OUR SYSTEM</div>
@@ -126,27 +164,37 @@
       <div class="capability-card reveal">
         <span class="capability-num">01</span>
         <div class="capability-title">OVERSIZED CUT</div>
-        <p class="capability-desc">Every piece engineered for the underground. Wide shoulders, dropped hem, built for movement in dark spaces.</p>
+        <p class="capability-desc">
+          Every piece engineered for the underground. Wide shoulders, dropped hem, built for movement in dark spaces.
+        </p>
       </div>
+
       <div class="capability-card reveal">
         <span class="capability-num">02</span>
         <div class="capability-title">RAVE IDENTITY</div>
-        <p class="capability-desc">Inspired by Afterlife, Junction 2, and Cairo's growing techno music scene. Wear the culture, don't just attend it.</p>
+        <p class="capability-desc">
+          Inspired by Afterlife, Junction 2, and Cairo's growing techno music scene. Wear the culture, don't just attend it.
+        </p>
       </div>
+
       <div class="capability-card reveal">
         <span class="capability-num">03</span>
         <div class="capability-title">LIMITED DROPS</div>
-        <p class="capability-desc">No restocks. No FOMO games. Pure scarcity — each design drops once, then it's gone into the archive.</p>
+        <p class="capability-desc">
+          No restocks. No FOMO games. Pure scarcity — each design drops once, then it's gone into the archive.
+        </p>
       </div>
+
       <div class="capability-card reveal">
         <span class="capability-num">04</span>
         <div class="capability-title">EGYPTIAN MADE</div>
-        <p class="capability-desc">Sourced, printed, and shipped from Alexandria. Supporting local while building global underground credibility.</p>
+        <p class="capability-desc">
+          Sourced, printed, and shipped from Alexandria. Supporting local while building global underground credibility.
+        </p>
       </div>
     </div>
   </div>
 </section>
-
 
 <!-- FEATURED PRODUCTS -->
 <section class="section">
@@ -158,79 +206,115 @@
     </div>
 
     {% if featured %}
-    <div class="products-grid">
-      {% for product in featured %}
-      <div class="product-card reveal" onclick="window.location='{{ url_for('main.product_detail', product_id=product.id) }}'">
-        <div class="product-card-img">
-          {% if product.image_url %}
-            <img src="{{ product.image_url }}" alt="{{ product.name }}" loading="lazy"/>
-            {% if product.image_url_2 %}
-              <div class="product-card-img-2">
-                <img src="{{ product.image_url_2 }}" alt="{{ product.name }} alt view" loading="lazy"/>
-              </div>
-            {% endif %}
-          {% else %}
-            <div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;">
-              <svg width="60" height="60" viewBox="0 0 60 60" fill="none">
-                <rect width="60" height="60" fill="#0b180b"/>
-                <text x="30" y="38" text-anchor="middle" font-family="Space Mono" font-size="10" fill="#76ff03" opacity="0.4">FREKS</text>
-              </svg>
+      <div class="products-grid">
+        {% for product in featured %}
+          {% set product_url = url_for('main.product_detail', product_id=product.id) %}
+          <div
+            class="product-card reveal product-card--clickable"
+            data-product-url="{{ product_url }}"
+            role="link"
+            tabindex="0"
+          >
+            <div class="product-card-img">
+              {% if product.image_url %}
+                <img
+                  src="{{ product.image_url }}"
+                  alt="{{ product.name }}"
+                  loading="lazy"
+                />
+
+                {% if product.image_url_2 %}
+                  <div class="product-card-img-2">
+                    <img
+                      src="{{ product.image_url_2 }}"
+                      alt="{{ product.name }} alternate view"
+                      loading="lazy"
+                    />
+                  </div>
+                {% endif %}
+              {% else %}
+                <div class="product-card-placeholder product-card-placeholder--svg">
+                  <svg width="60" height="60" viewBox="0 0 60 60" fill="none" aria-hidden="true">
+                    <rect width="60" height="60" fill="#0b180b"/>
+                    <text x="30" y="38" text-anchor="middle" font-family="Space Mono" font-size="10" fill="#76ff03" opacity="0.4">FREKS</text>
+                  </svg>
+                </div>
+              {% endif %}
+
+              <span class="product-badge">NEW</span>
             </div>
-          {% endif %}
-          <span class="product-badge">NEW</span>
-        </div>
-        <div class="product-card-body">
-          <div class="product-name">{{ product.name }}</div>
-          <div class="product-price">{{ "%.0f"|format(product.price) }} EGP</div>
-          <div class="product-stock">
-            {% set stock = product.get_total_stock() %}
-            {% if stock > 10 %}
-              <span class="live-dot"></span> In Stock
-            {% elif stock > 0 %}
-              <span style="color:var(--danger)">⚡ Only {{ stock }} left</span>
-            {% else %}
-              <span style="color:var(--muted)">Sold Out</span>
-            {% endif %}
+
+            <div class="product-card-body">
+              <div class="product-name">{{ product.name }}</div>
+              <div class="product-price">{{ "%.0f"|format(product.price) }} EGP</div>
+
+              <div class="product-stock">
+                {% set stock = product.get_total_stock() %}
+
+                {% if stock > 10 %}
+                  <span class="live-dot"></span> In Stock
+                {% elif stock > 0 %}
+                  <span class="stock-warning">⚡ Only {{ stock }} left</span>
+                {% else %}
+                  <span class="stock-sold">Sold Out</span>
+                {% endif %}
+              </div>
+            </div>
+
+            <div class="product-card-actions">
+              <a
+                href="{{ product_url }}"
+                class="btn btn--full"
+              >
+                <span>VIEW PIECE</span>
+              </a>
+            </div>
           </div>
-        </div>
-        <div class="product-card-actions">
-          <a href="{{ url_for('main.product_detail', product_id=product.id) }}" class="btn btn--full" onclick="event.stopPropagation()">
-            <span>VIEW PIECE</span>
-          </a>
-        </div>
+        {% endfor %}
       </div>
-      {% endfor %}
-    </div>
     {% else %}
-    <div class="empty-state">
-      <div class="empty-icon">📦</div>
-      <h3>DROPS COMING SOON</h3>
-      <p>Check back for the first collection.</p>
-    </div>
+      <div class="empty-state">
+        <div class="empty-icon">📦</div>
+        <h3>DROPS COMING SOON</h3>
+        <p>Check back for the first collection.</p>
+      </div>
     {% endif %}
 
-    <div style="text-align:center; margin-top:3rem;" class="reveal">
-      <a href="{{ url_for('main.shop') }}" class="btn btn--lg"><span>VIEW ALL PIECES</span></a>
+    <div class="view-all-wrap reveal">
+      <a href="{{ shop_url }}" class="btn btn--lg">
+        <span>VIEW ALL PIECES</span>
+      </a>
     </div>
   </div>
 </section>
 
-
 <!-- CLOSER -->
-<section style="padding:8rem 2rem; text-align:center; border-top:1px solid var(--border);">
-  <div style="max-width:700px; margin:0 auto;" class="reveal">
-    <div class="section-eyebrow" style="justify-content:center;">PAYMENT</div>
-    <h2 style="margin-bottom:1.5rem;">Easy Checkout.<br/>Egyptian Style.</h2>
-    <p style="color:var(--text-dim); margin:0 auto 2.5rem; font-size:1rem; line-height:1.8;">
+<section class="closer-section">
+  <div class="closer-inner reveal">
+    <div class="section-eyebrow section-eyebrow--center">PAYMENT</div>
+
+    <h2 class="closer-title">
+      Easy Checkout.<br/>Egyptian Style.
+    </h2>
+
+<p class="closer-copy">
       Cash on Delivery · Vodafone Cash · InstaPay<br/>
-      No middlemen. No complications. No hidden fees.</p>
-<span class="payment-option-icon">💵</span>
-    <p style="color:var(--text-dim); margin:0 auto 2.5rem; font-size:1rem; line-height:1.8;">
+      No middlemen. No complications. No hidden fees.
+    </p>
+
+    <span class="payment-option-icon">💵</span>
+
+<p class="closer-copy closer-copy--spaced">
       14 Days refund policy. 100% secure checkout. Your order is in good hands.
       Shipped from Alexandria, delivered to your door.
     </p>
-    <a href="{{ url_for('main.shop') }}" class="btn btn--lg btn--primary"><span>START SHOPPING</span></a>
+
+    <a
+      href="{{ shop_url }}"
+      class="btn btn--lg btn--primary"
+    >
+      <span>START SHOPPING</span>
+    </a>
   </div>
 </section>
-
 {% endblock %}
