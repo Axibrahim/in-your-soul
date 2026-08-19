@@ -734,7 +734,7 @@ a:hover {
   position: static;
   margin: 0;
   padding-top: 2.75rem;
-  font-size: clamp(0.9rem, 2vw, 1.1rem);
+  font-size: clamp(1rem, 2.2vw, 1.25rem);
   color: var(--text-dim);
   max-width: 28rem;
   line-height: 1.7;
@@ -852,6 +852,32 @@ a:hover {
   background: var(--accent);
   margin-top: 1.5rem;
   box-shadow: var(--glow);
+}
+
+/* ============================================ CLOSER */
+.closer-section {
+  padding: 6rem 2rem;
+}
+
+.closer-inner {
+  max-width: 700px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.closer-title {
+  margin-bottom: 1.5rem;
+}
+
+.closer-copy {
+  color: var(--text-dim);
+  margin: 0 auto 1rem;
+  line-height: 1.7;
+}
+
+.closer-copy--spaced {
+  margin-top: 1rem;
+  margin-bottom: 2rem;
 }
 
 /* ============================================ PRODUCT GRID */
@@ -2259,7 +2285,7 @@ tbody tr:hover {
   .hero-subtitle {
     max-width: 100%;
     padding-top: 0.35rem;
-    font-size: clamp(0.78rem, 2.4vw, 0.95rem);
+    font-size: clamp(0.85rem, 2.4vw, 1.05rem);
     line-height: 1.55;
   }
 
