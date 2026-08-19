@@ -2,16 +2,12 @@
 {% block title %}FREKS — Jungle System{% endblock %}
 
 {% block content %}
-
 {% set shop_url = url_for('main.shop') %}
 {% set about_url = url_for('main.about') %}
 
-<!-- HERO -->
 <section class="hero">
-  <!-- Cyber Rain Canvas -->
   <canvas class="cyber-canvas" id="cyber-canvas"></canvas>
 
-  <!-- Faded Logo Background -->
   <div class="hero-image-wrap" aria-hidden="true">
     <img
       src="{{ url_for('static', filename='images/logo.png') }}"
@@ -25,27 +21,32 @@
   <div class="hero-content">
     <div class="hero-eyebrow reveal">EGYPTIAN BRAND — EST. 2025</div>
 
-    <h1 class="hero-title reveal">
-      IN YOUR <span class="accent glitch" data-text="SOUL">SOUL</span>
-    </h1>
+    <div class="hero-copy">
+      <div class="hero-lead">
+        <h1 class="hero-title reveal">
+          <span class="hero-title-line">IN</span>
+          <span class="hero-title-line">YOUR</span>
+          <span class="hero-title-line accent glitch" data-text="SOUL">SOUL</span>
+        </h1>
 
-    <p class="hero-subtitle reveal">
-      Built for the rave. Worn at Afterlife.
-      Egyptian underground streetwear dropping in oversize silhouettes.
-    </p>
+        <div class="hero-cta reveal">
+          <a href="{{ shop_url }}" class="btn btn--lg">
+            <span>SHOP NOW</span>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <line x1="5" y1="12" x2="19" y2="12"/>
+              <polyline points="12 5 19 12 12 19"/>
+            </svg>
+          </a>
+          <a href="{{ about_url }}" class="btn btn--ghost btn--lg">
+            <span>OUR STORY</span>
+          </a>
+        </div>
+      </div>
 
-    <div class="hero-cta reveal">
-      <a href="{{ shop_url }}" class="btn btn--lg">
-        <span>SHOP NOW</span>
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-          <line x1="5" y1="12" x2="19" y2="12"/>
-          <polyline points="12 5 19 12 12 19"/>
-        </svg>
-      </a>
-
-      <a href="{{ about_url }}" class="btn btn--ghost btn--lg">
-        <span>OUR STORY</span>
-      </a>
+      <p class="hero-subtitle reveal">
+        Built for the rave. Worn at Afterlife.
+        Egyptian underground streetwear dropping in oversize silhouettes.
+      </p>
     </div>
   </div>
 
@@ -58,7 +59,6 @@
   </div>
 </section>
 
-<!-- MARQUEE -->
 <div class="marquee-wrap" aria-label="FREKS collection keywords">
   <div class="marquee">
     <span class="marquee-item">OVERSIZED TEES</span>
@@ -80,7 +80,6 @@
   </div>
 </div>
 
-<!-- ALL PRODUCTS -->
 {% if products %}
 <section class="section">
   <div class="section-inner">
@@ -101,12 +100,7 @@
         >
           <div class="product-card-img">
             {% if product.image_url %}
-              <img
-                src="{{ product.image_url }}"
-                alt="{{ product.name }}"
-                loading="lazy"
-              />
-
+              <img src="{{ product.image_url }}" alt="{{ product.name }}" loading="lazy"/>
               {% if product.image_url_2 %}
                 <div class="product-card-img-2">
                   <img
@@ -123,11 +117,7 @@
             {% endif %}
 
             {% if product.get_total_stock() == 0 %}
-              <span
-                class="product-badge product-badge--sold-out"
-              >
-                SOLD OUT
-              </span>
+              <span class="product-badge product-badge--sold-out">SOLD OUT</span>
             {% endif %}
           </div>
 
@@ -137,10 +127,7 @@
           </div>
 
           <div class="product-card-actions">
-            <a
-              href="{{ product_url }}"
-              class="btn btn--full"
-            >
+            <a href="{{ product_url }}" class="btn btn--full">
               <span>VIEW</span>
             </a>
           </div>
@@ -151,7 +138,6 @@
 </section>
 {% endif %}
 
-<!-- CAPABILITIES / WHY FREKS -->
 <section class="section capabilities-section">
   <div class="section-inner">
     <div class="section-header reveal">
@@ -168,7 +154,6 @@
           Every piece engineered for the underground. Wide shoulders, dropped hem, built for movement in dark spaces.
         </p>
       </div>
-
       <div class="capability-card reveal">
         <span class="capability-num">02</span>
         <div class="capability-title">RAVE IDENTITY</div>
@@ -176,7 +161,6 @@
           Inspired by Afterlife, Junction 2, and Cairo's growing techno music scene. Wear the culture, don't just attend it.
         </p>
       </div>
-
       <div class="capability-card reveal">
         <span class="capability-num">03</span>
         <div class="capability-title">LIMITED DROPS</div>
@@ -184,7 +168,6 @@
           No restocks. No FOMO games. Pure scarcity — each design drops once, then it's gone into the archive.
         </p>
       </div>
-
       <div class="capability-card reveal">
         <span class="capability-num">04</span>
         <div class="capability-title">EGYPTIAN MADE</div>
@@ -196,7 +179,6 @@
   </div>
 </section>
 
-<!-- FEATURED PRODUCTS -->
 <section class="section">
   <div class="section-inner">
     <div class="section-header reveal">
@@ -217,12 +199,7 @@
           >
             <div class="product-card-img">
               {% if product.image_url %}
-                <img
-                  src="{{ product.image_url }}"
-                  alt="{{ product.name }}"
-                  loading="lazy"
-                />
-
+                <img src="{{ product.image_url }}" alt="{{ product.name }}" loading="lazy"/>
                 {% if product.image_url_2 %}
                   <div class="product-card-img-2">
                     <img
@@ -240,17 +217,14 @@
                   </svg>
                 </div>
               {% endif %}
-
               <span class="product-badge">NEW</span>
             </div>
 
             <div class="product-card-body">
               <div class="product-name">{{ product.name }}</div>
               <div class="product-price">{{ "%.0f"|format(product.price) }} EGP</div>
-
               <div class="product-stock">
                 {% set stock = product.get_total_stock() %}
-
                 {% if stock > 10 %}
                   <span class="live-dot"></span> In Stock
                 {% elif stock > 0 %}
@@ -262,10 +236,7 @@
             </div>
 
             <div class="product-card-actions">
-              <a
-                href="{{ product_url }}"
-                class="btn btn--full"
-              >
+              <a href="{{ product_url }}" class="btn btn--full">
                 <span>VIEW PIECE</span>
               </a>
             </div>
@@ -288,31 +259,20 @@
   </div>
 </section>
 
-<!-- CLOSER -->
 <section class="closer-section">
   <div class="closer-inner reveal">
     <div class="section-eyebrow section-eyebrow--center">PAYMENT</div>
-
-    <h2 class="closer-title">
-      Easy Checkout.<br/>Egyptian Style.
-    </h2>
-
-<p class="closer-copy">
+    <h2 class="closer-title">Easy Checkout.<br/>Egyptian Style.</h2>
+    <p class="closer-copy">
       Cash on Delivery · Vodafone Cash · InstaPay<br/>
       No middlemen. No complications. No hidden fees.
     </p>
-
     <span class="payment-option-icon">💵</span>
-
-<p class="closer-copy closer-copy--spaced">
+    <p class="closer-copy closer-copy--spaced">
       14 Days refund policy. 100% secure checkout. Your order is in good hands.
       Shipped from Alexandria, delivered to your door.
     </p>
-
-    <a
-      href="{{ shop_url }}"
-      class="btn btn--lg btn--primary"
-    >
+    <a href="{{ shop_url }}" class="btn btn--lg btn--primary">
       <span>START SHOPPING</span>
     </a>
   </div>
