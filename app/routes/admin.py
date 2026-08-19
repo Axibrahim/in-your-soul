@@ -1,3 +1,4 @@
+
 from flask import Blueprint, render_template, redirect, url_for, flash, request, jsonify, current_app
 from flask_login import login_required, current_user
 from app.models import Product, ProductVariant, Category, Order, User, db
@@ -5,11 +6,18 @@ from functools import wraps
 import os, re, time, secrets
 from werkzeug.utils import secure_filename
 from PIL import Image
+from supabase import create_client, Client
 
 admin_bp = Blueprint('admin', __name__)
 
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'webp', 'gif'}
 ALLOWED_PIL_FORMATS = {'PNG', 'JPEG', 'WEBP', 'GIF'}
+
+# Initialize Supabase Client
+SUPABASE_URL = os.environ.get("SUPABASE_URL")
+SUPABASE_KEY = os.environ.get("SUPABASE_KEY")
+supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY) if SUPABASE_URL and SUPABASE_KEY else None
+BUCKET_NAME = "product-images"
 
 
 def admin_required(f):
@@ -32,11 +40,11 @@ def slugify(text):
     return text.strip('-')
 
 
-def save_product_image(file, upload_folder):
+def save_product_image(file):
     """
     Validate that the uploaded file is a genuine image (not just something
     with a spoofed .jpg extension) by actually decoding it with Pillow, then
-    save a freshly re-encoded copy. Returns the saved filename, or None if
+    upload it directly to Supabase Storage. Returns the public URL, or None if
     the file was rejected.
     """
     if not file or not file.filename or not allowed_file(file.filename):
@@ -61,8 +69,22 @@ def save_product_image(file, upload_folder):
     if image.mode in ('P', 'RGBA') and image_format == 'JPEG':
         image = image.convert('RGB')
 
-    image.save(os.path.join(upload_folder, filename))
-    return filename
+    if not supabase:
+        return None
+
+    try:
+        # Rewind stream and read bytes for Supabase upload
+        file.stream.seek(0)
+        file_bytes = file.stream.read()
+        
+        supabase.storage.from_(BUCKET_NAME).upload(
+            path=filename,
+            file=file_bytes,
+            file_options={"content-type": file.content_type, "upsert": "true"}
+        )
+        return supabase.storage.from_(BUCKET_NAME).get_public_url(filename)
+    except Exception:
+        return None
 
 
 @admin_bp.route('/')
@@ -119,14 +141,13 @@ def add_product():
             is_featured=is_featured
         )
 
-        upload_folder = current_app.config['UPLOAD_FOLDER']
         for field_name, attr in [('image', 'image_url'), ('image2', 'image_url_2')]:
             file = request.files.get(field_name)
-            filename = save_product_image(file, upload_folder)
-            if filename:
-                setattr(product, attr, f'/static/images/products/{filename}')
+            public_url = save_product_image(file)
+            if public_url:
+                setattr(product, attr, public_url)
             elif file and file.filename:
-                flash(f'{field_name}: file was not a valid image and was skipped.', 'danger')
+                flash(f'{field_name}: file was not a valid image or upload failed and was skipped.', 'danger')
 
         db.session.add(product)
         db.session.flush()
@@ -160,14 +181,13 @@ def edit_product(product_id):
         product.is_featured = request.form.get('is_featured') == 'on'
         product.is_active = request.form.get('is_active') == 'on'
 
-        upload_folder = current_app.config['UPLOAD_FOLDER']
         for field_name, attr in [('image', 'image_url'), ('image2', 'image_url_2')]:
             file = request.files.get(field_name)
-            filename = save_product_image(file, upload_folder)
-            if filename:
-                setattr(product, attr, f'/static/images/products/{filename}')
+            public_url = save_product_image(file)
+            if public_url:
+                setattr(product, attr, public_url)
             elif file and file.filename:
-                flash(f'{field_name}: file was not a valid image and was skipped.', 'danger')
+                flash(f'{field_name}: file was not a valid image or upload failed and was skipped.', 'danger')
 
         sizes = ['XS', 'S', 'M', 'L', 'XL', 'XXL']
         for size in sizes:
