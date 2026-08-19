@@ -2594,3 +2594,9 @@ tbody tr:hover {
     border-bottom: 0;
   }
 }
+/* Center payment block on homepage */
+.payment-options {
+  width: min(500px, 100%);
+  margin-left: auto;
+  margin-right: auto;
+}
