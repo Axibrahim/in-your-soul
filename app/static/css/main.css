@@ -2453,8 +2453,17 @@ tbody tr:hover {
   }
 
   .order-status-bar {
-    overflow-x: auto;
-    min-width: 520px;
+    margin: 1.5rem 0;
+  }
+
+  .status-dot {
+    width: 22px;
+    height: 22px;
+  }
+
+  .status-name {
+    font-size: 0.52rem;
+    letter-spacing: 0.06em;
   }
 
   .table-wrap {
