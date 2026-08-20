@@ -1,6 +1,5 @@
 import os
-import smtplib
-from email.message import EmailMessage
+import resend
 from flask import current_app, url_for
 from itsdangerous import URLSafeTimedSerializer
 
@@ -25,14 +24,28 @@ def confirm_verify_token(token: str):
         return None
 
 
-def send_verification_email(to_email: str, token: str) -> bool:
-    gmail_user = os.environ.get('GMAIL_ADDRESS')
-    gmail_password = os.environ.get('GMAIL_PASSWORD')
+def _resend_send(to_email: str, subject: str, text_body: str) -> bool:
+    resend.api_key = os.environ.get('RESEND_API_KEY')
+    from_email = os.environ.get('RESEND_FROM_EMAIL')
 
-    if not all([gmail_user, gmail_password]):
-        print("GMAIL credentials are not configured.")
+    if not resend.api_key or not from_email:
+        print("RESEND_API_KEY or RESEND_FROM_EMAIL is not configured.")
         return False
 
+    try:
+        resend.Emails.send({
+            "from": from_email,
+            "to": to_email,
+            "subject": subject,
+            "text": text_body,
+        })
+        return True
+    except Exception as e:
+        print(f"Failed to send email via Resend: {e}")
+        return False
+
+
+def send_verification_email(to_email: str, token: str) -> bool:
     link = url_for('auth.verify_email', token=token, _external=True)
     body = (
         f"Welcome to IN YOUR SOUL.\n\n"
@@ -40,23 +53,8 @@ def send_verification_email(to_email: str, token: str) -> bool:
         f"It expires in 1 hour.\n\n{link}\n\n"
         f"If you didn't create this account, ignore this email."
     )
+    return _resend_send(to_email, 'Verify your IN YOUR SOUL account', body)
 
-    msg = EmailMessage()
-    msg['Subject'] = 'Verify your IN YOUR SOUL account'
-    msg['From'] = gmail_user
-    msg['To'] = to_email
-    msg.set_content(body)
-
-    try:
-        with smtplib.SMTP('smtp.gmail.com', 587, timeout=10) as smtp:
-            smtp.ehlo()
-            smtp.starttls()
-            smtp.login(gmail_user, gmail_password)
-            smtp.send_message(msg)
-        return True
-    except Exception as e:
-        print(f"Failed to send verification email: {e}")
-        return False
 
 def generate_reset_token(email: str) -> str:
     return _serializer().dumps(email, salt='password-reset')
@@ -75,13 +73,6 @@ def confirm_reset_token(token: str):
 
 
 def send_reset_email(to_email: str, token: str) -> bool:
-    gmail_user = os.environ.get('GMAIL_ADDRESS')
-    gmail_password = os.environ.get('GMAIL_PASSWORD')
-
-    if not all([gmail_user, gmail_password]):
-        print("GMAIL credentials are not configured.")
-        return False
-
     link = url_for('auth.reset_password', token=token, _external=True)
     body = (
         f"We received a request to reset your IN YOUR SOUL password.\n\n"
@@ -89,20 +80,4 @@ def send_reset_email(to_email: str, token: str) -> bool:
         f"If you didn't request this, you can safely ignore this email — "
         f"your password will not be changed."
     )
-
-    msg = EmailMessage()
-    msg['Subject'] = 'Reset your IN YOUR SOUL password'
-    msg['From'] = gmail_user
-    msg['To'] = to_email
-    msg.set_content(body)
-
-    try:
-        with smtplib.SMTP('smtp.gmail.com', 587, timeout=10) as smtp:
-            smtp.ehlo()
-            smtp.starttls()
-            smtp.login(gmail_user, gmail_password)
-            smtp.send_message(msg)
-        return True
-    except Exception as e:
-        print(f"Failed to send reset email: {e}")
-        return False
+    return _resend_send(to_email, 'Reset your IN YOUR SOUL password', body)
