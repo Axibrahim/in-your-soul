@@ -2564,36 +2564,56 @@ tbody tr:hover {
 }
 
 /* ============================================
-   ABOUT — MOBILE IDENTITY BLOCK
+   ABOUT — MOBILE IDENTITY
    ============================================ */
 
 @media (max-width: 768px) {
 
+  /* Stop horizontal page movement */
+  html,
   body {
     overflow-x: hidden;
   }
 
+  /* Identity two-column layout -> vertical */
   .section-inner > div[style*="grid-template-columns"] {
-    display: block !important;
+    display: flex !important;
+    flex-direction: column;
+    gap: 3rem !important;
   }
 
+  /* Identity copy */
   .section-inner > div[style*="grid-template-columns"] > div:first-child {
-    margin-bottom: 3rem;
+    width: 100%;
+    margin: 0;
   }
 
+  /* Identity stats */
   .section-inner > div[style*="grid-template-columns"] > div:last-child {
-    width: 100%;
-    max-width: 100%;
-    margin: 0;
+    width: calc(100% + 1.5rem);
+    max-width: none;
+    margin-left: -0.75rem;
     padding: 2rem 1.25rem !important;
-    transform: translateX(0);
+
+    /* Keep it visually attached to the section */
+    transform: none !important;
+
+    background: var(--panel);
+    border-left: 1px solid var(--border);
+    border-right: 1px solid var(--border);
   }
 
 }
 
 @media (max-width: 520px) {
 
+  .section-inner > div[style*="grid-template-columns"] {
+    gap: 2.5rem !important;
+  }
+
   .section-inner > div[style*="grid-template-columns"] > div:last-child {
+    width: calc(100% + 1rem);
+    margin-left: -0.5rem;
     padding: 1.75rem 1rem !important;
   }
 
