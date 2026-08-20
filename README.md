@@ -1,232 +1,374 @@
-# FREKS — Commercial Website
+IN YOUR SOUL — Commercial Website
 
 Egyptian underground streetwear e-commerce platform.
-Built with Flask, SQLAlchemy, and the Jungle System design language.
 
----
+In Your Soul is a full-stack commercial fashion platform built around an underground streetwear identity, combining a dark cyberpunk-inspired interface with a complete shopping, account, payment, and administration system.
 
-## Stack
+Formerly known as FREKS.
 
-- **Backend**: Flask (Python), SQLAlchemy ORM, Flask-Login, Flask-Bcrypt, Flask-WTF (CSRF), Flask-Limiter (rate limiting)
-- **Database**: PostgreSQL via Supabase (production) / SQLite (local fallback)
-- **Frontend**: Jinja2 templates, pure CSS (Space Mono + Space Grotesk), vanilla JS
-- **Design**: Jungle System — Lime `#76ff03` on pitch black `#040804`
-- **Security**: Token-based session validation, rate-limited auth routes, CSRF protection
+⸻
 
----
+Stack
 
-## Setup
+* Backend: Flask (Python), SQLAlchemy ORM
+* Authentication: Flask-Login, custom token-based session validation
+* Security: Flask-WTF (CSRF), Flask-Limiter (rate limiting), password hashing
+* Database: PostgreSQL via Supabase (production) / SQLite (local fallback)
+* Frontend: Jinja2 templates, vanilla JavaScript, custom CSS
+* Typography: Space Mono + Space Grotesk
+* Deployment: Gunicorn + Railway
+* Email: Resend API
+* Design System: In Your Soul — dark underground aesthetic with neon-lime accents
 
-### 1. Clone the repository
+⸻
 
-```bash
+Features
+
+Store
+
+* Dark immersive homepage
+* Responsive mobile-first interface
+* Product catalog and categories
+* Product detail pages
+* Multiple product images
+* Size and variant selection
+* Live inventory tracking
+* Add to cart
+* Update and remove cart items
+* Persistent shopping cart
+* Checkout system
+* Saved customer addresses
+* Order history
+
+Payments
+
+Supported payment methods include:
+
+* Cash on Delivery
+* Vodafone Cash
+* InstaPay
+
+Online-payment orders use a payment confirmation window. Unpaid orders can automatically expire and return reserved inventory to stock.
+
+⸻
+
+User Accounts
+
+* Username-based authentication
+* Phone number registration
+* Secure password hashing
+* Email verification
+* Login / logout
+* Password changes
+* Profile management
+* Address management
+* Default address selection
+* Order history
+* Order status tracking
+
+Order statuses:
+
+Pending
+   ↓
+Confirmed
+   ↓
+Shipped
+   ↓
+Delivered
+
+⸻
+
+Email Verification
+
+Production email delivery uses the Resend API.
+
+Verification emails are sent during account registration and contain time-limited verification codes.
+
+Required environment variables:
+
+RESEND_API_KEY=your_resend_api_key
+RESEND_FROM_EMAIL=your_verified_sender
+
+Never commit API keys or other credentials to Git.
+
+⸻
+
+Security
+
+The application includes multiple security layers:
+
+* Token-based session validation
+* Fresh authentication token on login
+* Immediate session invalidation on logout
+* CSRF protection on forms
+* Rate limiting on authentication and sensitive routes
+* Secure password hashing
+* Payment-method whitelisting
+* Server-side validation
+* Protected admin routes
+* Environment-based secret configuration
+
+Authentication tokens are validated through the custom authentication guard before protected actions are processed.
+
+⸻
+
+Admin Dashboard
+
+The /admin dashboard provides administrative control over the store.
+
+Dashboard
+
+* Revenue statistics
+* Order statistics
+* User statistics
+* Product statistics
+
+Products
+
+* Create products
+* Edit products
+* Activate/deactivate products
+* Manage variants
+* Manage inventory
+* Manage product images
+
+Inventory
+
+Inventory can be managed per size and variant, including:
+
+XS
+S
+M
+L
+XL
+XXL
+
+Orders
+
+* View customer orders
+* Update order status
+* Review payment information
+* Manage order workflow
+
+Categories
+
+* Create categories
+* Edit categories
+* Manage product categorization
+
+Users
+
+* View users
+* Manage accounts
+* Promote/demote administrators
+
+⸻
+
+Database
+
+Production uses PostgreSQL hosted through Supabase.
+
+Local development can use SQLite automatically when DATABASE_URL is not provided.
+
+Production
+
+Create a .env file:
+
+SECRET_KEY=your-strong-random-secret-key
+DATABASE_URL=postgresql+psycopg://postgres.YOUR_PROJECT_REF:YOUR_PASSWORD@YOUR_POOLER_HOST:6543/postgres
+RESEND_API_KEY=your_resend_api_key
+RESEND_FROM_EMAIL=your_verified_sender
+
+Generate a secure secret key:
+
+python -c "import secrets; print(secrets.token_hex(32))"
+
+Supabase
+
+The PostgreSQL connection uses the psycopg driver:
+
+postgresql+psycopg://
+
+When using Supabase’s pooler, prepared statements are disabled through SQLAlchemy’s connection configuration.
+
+⸻
+
+Local Development
+
+1. Clone the repository
+
 git clone REPOSITORY_URL
-cd freks
-```
+cd in-your-soul
 
-### 2. Create virtual environment
+2. Create a virtual environment
 
-```bash
-# Windows
+Windows
+
 python -m venv .venv
 .venv\Scripts\activate
 
-# macOS / Linux
+macOS / Linux
+
 python3 -m venv .venv
 source .venv/bin/activate
-```
 
-### 3. Install dependencies
+3. Install dependencies
 
-```bash
 pip install -r requirements.txt
-```
 
-### 4. Configure environment
+4. Configure environment variables
 
-Create a `.env` file in the project root:
+Create:
 
-```dotenv
-SECRET_KEY=your-strong-random-secret-key-here
-DATABASE_URL=postgresql+psycopg://postgres.YOUR_PROJECT_REF:YOUR_PASSWORD@aws-1-eu-central-1.pooler.supabase.com:6543/postgres
-```
+.env
 
-To generate a strong secret key:
-```bash
-python -c "import secrets; print(secrets.token_hex(32))"
-```
+Example:
 
-**Get your Supabase connection string:**
-1. Go to your Supabase project → Project Settings → Database → Connection String
-2. Choose **Transaction pooler** or **Session pooler** (port `6543`)
-3. Use the `+psycopg` driver prefix (not `+psycopg2`) and replace `[YOUR-PASSWORD]` with your real password
-4. If your password contains special characters, URL-encode them (e.g. `\` → `%5C`, `@` → `%40`)
+SECRET_KEY=your-secret-key
+# Optional locally — SQLite is used automatically if omitted
+DATABASE_URL=postgresql+psycopg://...
+# Email verification
+RESEND_API_KEY=your_api_key
+RESEND_FROM_EMAIL=your_verified_sender
 
-No `.env`? The app falls back to local SQLite automatically — fine for quick testing, not for production.
+5. Create database tables
 
-### 5. Create database tables
-
-```bash
 python -c "from app import create_app, db; app = create_app(); app.app_context().push(); db.create_all()"
-```
 
-### 6. Seed the database
+6. Seed the database
 
-```bash
 python seed.py
-```
 
-### 7. Run the server
+7. Start the development server
 
-```bash
 python run.py
-```
 
-Visit: `http://localhost:5000`
+Open:
 
----
+http://localhost:5000
 
-## Default Credentials
+⸻
 
-| Role  | Username     | Password    |
-|-------|--------------|-------------|
-| Admin | freks_admin  | Freks@2025! |
-| Demo  | jungle_user  | Demo@2025!  |
+Project Structure
 
-**Change these immediately in production.** Login is username-based (not email) — registration collects phone number instead of email, matching the Egyptian market (Vodafone Cash / InstaPay tie to phone numbers).
-
----
-
-## Features
-
-### Store
-- Video hero homepage with cyber-rain matrix canvas effect
-- Product grid with hover image swap, live stock indicators
-- Product detail page with size selector, add-to-cart
-- Full cart management (add, update, remove)
-- Checkout with saved or manual address entry
-
-### Payments
-- Cash on Delivery (COD)
-- Vodafone Cash — number: `01557793954`
-- InstaPay
-- 2-hour payment window for Vodafone Cash / InstaPay orders — unpaid orders auto-cancel and restock automatically
-- 14-day return policy displayed on every order
-
-### User Accounts
-- Register / Login / Logout (username + phone based)
-- Order history with visual status tracking (pending → confirmed → shipped → delivered)
-- Address management (add, remove, set default)
-- Profile editing + password change
-
-### Security
-- Token-based session validation (`app/auth_guard.py`) — every login issues a fresh token; logout or token mismatch instantly invalidates the session
-- Rate limiting on login (5/min), registration (3/hour), cart actions, and checkout to prevent brute-force and bot abuse
-- CSRF protection on all forms via Flask-WTF
-- Payment method whitelisting at checkout
-
-### Admin Dashboard (`/admin`)
-- Sales stats overview (orders, revenue, users, products)
-- Product management: add, edit, toggle active/inactive
-- Per-size inventory management (XS → XXL)
-- Order management with status updates
-- Category management
-- User management (promote/demote admin)
-
----
-
-## Project Structure
-
-```
-freks/
-├── run.py                  # App entry point
-├── seed.py                 # Database seeder
-├── config.py                # Configuration (env, DB, engine options)
+in-your-soul/
+├── run.py
+├── seed.py
+├── config.py
 ├── requirements.txt
 ├── README.md
 └── app/
-    ├── __init__.py          # App factory
-    ├── auth_guard.py        # Token-based session security layer
+    ├── __init__.py
+    ├── auth_guard.py
+    │
     ├── models/
-    │   └── __init__.py      # All SQLAlchemy models
+    │   └── __init__.py
+    │
     ├── routes/
-    │   ├── main.py           # Public shop routes + expired order cleanup
-    │   ├── auth.py            # Login / register / logout
-    │   ├── cart.py             # Cart & checkout
-    │   ├── account.py          # User account pages
-    │   └── admin.py             # Admin dashboard
+    │   ├── main.py
+    │   ├── auth.py
+    │   ├── cart.py
+    │   ├── account.py
+    │   └── admin.py
+    │
     ├── static/
-    │   ├── css/main.css       # Jungle System design system
-    │   ├── js/main.js          # All frontend JS
-    │   ├── images/
-    │   │   └── products/        # Uploaded product images
-    │   └── videos/
-    │       └── hero.mp4          # Homepage background video (.mp4 required)
+    │   ├── css/
+    │   │   └── main.css
+    │   ├── js/
+    │   │   └── main.js
+    │   └── images/
+    │       └── products/
+    │
     └── templates/
-        ├── base.html           # Global layout + nav + footer
-        ├── errors/               # 429 rate-limit error page
-        ├── main/                  # Shop, product, cart, checkout, about
-        ├── auth/                   # Login, register
-        ├── account/                 # Dashboard, orders, addresses, profile
-        └── admin/                    # Admin panel templates
-```
+        ├── base.html
+        ├── errors/
+        ├── main/
+        ├── auth/
+        ├── account/
+        └── admin/
 
----
+⸻
 
-## Hero Video
+Deployment
 
-Place your video at:
-```
-app/static/videos/hero.mp4
-```
+The production application is designed to run with:
 
-Recommended: 1920×1080, H.264, under 20MB, dark/moody content. The cyber-rain matrix canvas renders automatically as a fallback if no video is loaded.
+Flask
+   ↓
+Gunicorn
+   ↓
+Railway
+   ↓
+Supabase PostgreSQL
 
----
+Production checklist
 
-## Database Notes — Supabase / Postgres
+* Set a strong SECRET_KEY
+* Configure the production DATABASE_URL
+* Configure Resend
+* Set production environment variables
+* Disable debug mode
+* Use Gunicorn
+* Enable HTTPS
+* Enable secure session cookies
+* Configure persistent rate-limit storage
+* Protect admin access
+* Never commit .env or API keys
 
-This project uses `psycopg` (v3) as the Postgres driver. Two things matter for Supabase's connection pooler to work correctly:
+Example Gunicorn command:
 
-1. **Driver prefix in the URL must be `+psycopg`**, not `+psycopg2`:
-   ```
-   postgresql+psycopg://...
-   ```
-2. **Prepared statements must be disabled** when using Supabase's pooler (PgBouncer doesn't support them). This is already configured in `config.py` via:
-   ```python
-   SQLALCHEMY_ENGINE_OPTIONS = {
-       "connect_args": {"prepare_threshold": None}
-   }
-   ```
-   Don't pass `prepare_threshold` as a URL query string — psycopg3 parses it as a string and crashes; it must be set as a Python `None` via `connect_args`.
+gunicorn run:app
 
-If switching back to local SQLite for testing, just remove `DATABASE_URL` from `.env` — the app falls back automatically.
+⸻
 
----
+Design System
 
-## Production Deployment Checklist
+The original Jungle System visual language evolved into the current In Your Soul identity.
 
-- [ ] Set `SECRET_KEY` to a strong random value (never commit this)
-- [ ] Set `DATABASE_URL` to your production PostgreSQL/Supabase connection string
-- [ ] Change default admin/demo credentials
-- [ ] Set `DEBUG=False`
-- [ ] Use `gunicorn run:app` behind nginx
-- [ ] Configure a persistent rate-limiter storage backend (Redis recommended) instead of in-memory
-- [ ] Restrict `/admin` access by IP or additional auth layer
-- [ ] Set `SESSION_COOKIE_SECURE = True` once running behind HTTPS
+Core Palette
 
----
+Token	Value	Usage
+--bg	#040804	Main background
+--panel	#0b180b	Cards and panels
+--panel-2	#0e1d0e	Secondary surfaces
+--accent	#76ff03	CTAs, prices, highlights
+--accent-dim	#4db800	Secondary accent
+--danger	#ff1744	Errors and alerts
+--muted	#3a4a3a	Borders and disabled states
 
-## Color Palette — Jungle System
+Typography
 
-| Token      | Value     | Usage                        |
-|------------|-----------|-------------------------------|
-| `--bg`     | `#040804` | Page background               |
-| `--panel`  | `#0b180b` | Cards, panels, sidebar        |
-| `--accent` | `#76ff03` | Primary accent, CTAs, prices  |
-| `--danger` | `#ff1744` | Errors, sold-out, alerts      |
-| `--muted`  | `#3a4a3a` | Disabled states, borders      |
+Space Mono
+Space Grotesk
 
----
+The visual direction focuses on:
 
-@ Made by AxIbrahim — 2026
+* Underground streetwear
+* Cyberpunk-inspired interfaces
+* High contrast
+* Neon accents
+* Minimal surfaces
+* Aggressive typography
+* Mobile-first interaction
+
+⸻
+
+Project Evolution
+
+FREKS
+  │
+  │ Rebrand
+  ▼
+IN YOUR SOUL
+
+The underlying application architecture remains the same while the brand identity, visual direction, and commercial presentation evolved into In Your Soul.
+
+⸻
+
+Author
+
+AxIbrahim
+
+Built in 2026.
+
+In Your Soul — Wear what lives inside.
