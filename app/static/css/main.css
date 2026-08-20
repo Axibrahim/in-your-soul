@@ -2562,3 +2562,39 @@ tbody tr:hover {
   margin-left: auto;
   margin-right: auto;
 }
+
+/* ============================================
+   ABOUT — MOBILE IDENTITY BLOCK
+   ============================================ */
+
+@media (max-width: 768px) {
+
+  body {
+    overflow-x: hidden;
+  }
+
+  .section-inner > div[style*="grid-template-columns"] {
+    display: block !important;
+  }
+
+  .section-inner > div[style*="grid-template-columns"] > div:first-child {
+    margin-bottom: 3rem;
+  }
+
+  .section-inner > div[style*="grid-template-columns"] > div:last-child {
+    width: 100%;
+    max-width: 100%;
+    margin: 0;
+    padding: 2rem 1.25rem !important;
+    transform: translateX(0);
+  }
+
+}
+
+@media (max-width: 520px) {
+
+  .section-inner > div[style*="grid-template-columns"] > div:last-child {
+    padding: 1.75rem 1rem !important;
+  }
+
+}
