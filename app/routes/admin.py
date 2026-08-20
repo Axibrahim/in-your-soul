@@ -1,7 +1,7 @@
 
 from flask import Blueprint, render_template, redirect, url_for, flash, request, jsonify, current_app
 from flask_login import login_required, current_user
-from app.models import Product, ProductVariant, Category, Order, User, db
+from app.models import OrderItem, Product, ProductVariant, Category, Order, User, db
 from functools import wraps
 import os, re, time, secrets
 from werkzeug.utils import secure_filename
@@ -245,16 +245,45 @@ def edit_product(product_id):
     )
 
 
+@admin_bp.route('/products/<int:product_id>/deactivate', methods=['POST'])
+@login_required
+@admin_required
+def deactivate_product(product_id):
+    product = Product.query.get_or_404(product_id)
+
+    product.is_active = False
+    db.session.commit()
+
+    flash(f'Product "{product.name}" deactivated.', 'success')
+    return redirect(url_for('admin.products'))
+
+
 @admin_bp.route('/products/<int:product_id>/delete', methods=['POST'])
 @login_required
 @admin_required
 def delete_product(product_id):
     product = Product.query.get_or_404(product_id)
-    product.is_active = False
-    db.session.commit()
-    flash('Product deactivated.', 'success')
-    return redirect(url_for('admin.products'))
 
+    # Do not permanently delete products that are already part of orders
+    if OrderItem.query.filter_by(product_id=product.id).first():
+        flash(
+            'This product cannot be permanently deleted because it is linked to existing orders. '
+            'Deactivate it instead.',
+            'danger'
+        )
+        return redirect(url_for('admin.products'))
+
+    # Delete product variants first
+    ProductVariant.query.filter_by(product_id=product.id).delete(
+        synchronize_session=False
+    )
+
+    # Delete the product
+    db.session.delete(product)
+    db.session.commit()
+
+    flash(f'Product "{product.name}" permanently deleted.', 'success')
+    return redirect(url_for('admin.products'))
 
 @admin_bp.route('/products/<int:product_id>/toggle', methods=['POST'])
 @login_required

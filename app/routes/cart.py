@@ -7,7 +7,7 @@ from app import limiter
 
 cart_bp = Blueprint('cart', __name__)
 
-DELIVERY_FEE = 50
+DELIVERY_FEE = 80
  
 
 def get_cart():

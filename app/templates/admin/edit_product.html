@@ -294,13 +294,53 @@
       {% endfor %}
 
 
-      <button
-        type="submit"
-        class="btn btn--primary btn--full"
-        style="margin-top:0.5rem;"
-      >
-        <span>SAVE CHANGES</span>
-      </button>
+<button
+  type="submit"
+  class="btn btn--primary btn--full"
+  style="margin-top:0.5rem;"
+>
+  <span>SAVE CHANGES</span>
+</button>
+
+<form
+  method="POST"
+  action="{{ url_for('admin.deactivate_product', product_id=product.id) }}"
+  onsubmit="return confirm('Deactivate this product? It will remain in the database but will no longer be visible in the shop.')"
+  style="margin-top:0.75rem;"
+>
+  <input
+    type="hidden"
+    name="csrf_token"
+    value="{{ csrf_token() }}"
+  />
+
+  <button
+    type="submit"
+    class="btn btn--ghost btn--full"
+  >
+    <span>DEACTIVATE PRODUCT</span>
+  </button>
+</form>
+
+<form
+  method="POST"
+  action="{{ url_for('admin.delete_product', product_id=product.id) }}"
+  onsubmit="return confirm('PERMANENTLY DELETE this product? This cannot be undone.')"
+  style="margin-top:0.75rem;"
+>
+  <input
+    type="hidden"
+    name="csrf_token"
+    value="{{ csrf_token() }}"
+  />
+
+  <button
+    type="submit"
+    class="btn btn--danger btn--full"
+  >
+    <span>DELETE PERMANENTLY</span>
+  </button>
+</form>
 
 
     </div>
