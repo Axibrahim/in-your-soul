@@ -7,6 +7,8 @@ from app import limiter
 
 cart_bp = Blueprint('cart', __name__)
 
+DELIVERY_FEE = 50
+ 
 
 def get_cart():
     return session.get('cart', {})
@@ -34,7 +36,7 @@ def view_cart():
                 'quantity': item['quantity'],
                 'total': total
             })
-    shipping = 0 if subtotal == 0 else 80  # 80 EGP shipping
+    shipping = DELIVERY_FEE
     return render_template('main/cart.html', items=items, subtotal=subtotal, shipping=shipping, total=subtotal + shipping)
 
 
@@ -147,7 +149,7 @@ def checkout():
                 'total': total
             })
 
-    shipping = 80
+    shipping = DELIVERY_FEE
     grand_total = subtotal + shipping
 
     if request.method == 'POST':

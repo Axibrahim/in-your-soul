@@ -147,7 +147,7 @@ def add_product():
         db.session.add(product)
         db.session.flush()
 
-        sizes = ['XS', 'S', 'M', 'L', 'XL', 'XXL']
+        sizes = ['M', 'L', 'XL']
         for size in sizes:
             stock = request.form.get(f'stock_{size}', 0, type=int)
             if stock >= 0:
@@ -182,22 +182,67 @@ def edit_product(product_id):
             if public_url:
                 setattr(product, attr, public_url)
             elif file and file.filename:
-                flash(f'{field_name}: file was not a valid image or upload failed and was skipped.', 'danger')
+                flash(
+                    f'{field_name}: file was not a valid image or upload failed and was skipped.',
+                    'danger'
+                )
 
-        sizes = ['XS', 'S', 'M', 'L', 'XL', 'XXL']
-        for size in sizes:
+        # Default sizes: M, L, XL
+        for size in ['M', 'L', 'XL']:
             stock = request.form.get(f'stock_{size}', 0, type=int)
-            variant = ProductVariant.query.filter_by(product_id=product.id, size=size).first()
+
+            variant = ProductVariant.query.filter_by(
+                product_id=product.id,
+                size=size
+            ).first()
+
             if variant:
                 variant.stock = max(0, stock)
             else:
-                db.session.add(ProductVariant(product_id=product.id, size=size, stock=max(0, stock)))
+                db.session.add(
+                    ProductVariant(
+                        product_id=product.id,
+                        size=size,
+                        stock=max(0, stock)
+                    )
+                )
+
+        # Optional sizes: XS, S, XXL, XXXL
+        for size in ['XS', 'S', 'XXL', 'XXXL']:
+            variant = ProductVariant.query.filter_by(
+                product_id=product.id,
+                size=size
+            ).first()
+
+            enabled = request.form.get(f'enable_{size}') == 'on'
+
+            if enabled:
+                stock = request.form.get(f'stock_{size}', 0, type=int)
+
+                if variant:
+                    variant.stock = max(0, stock)
+                else:
+                    db.session.add(
+                        ProductVariant(
+                            product_id=product.id,
+                            size=size,
+                            stock=max(0, stock)
+                        )
+                    )
+
+            elif variant:
+                # Hide optional size without deleting the variant
+                variant.stock = 0
 
         db.session.commit()
         flash('Product updated.', 'success')
         return redirect(url_for('admin.products'))
 
-    return render_template('admin/edit_product.html', product=product, categories=categories)
+    return render_template(
+        'admin/edit_product.html',
+        product=product,
+        categories=categories
+    )
 
 
 @admin_bp.route('/products/<int:product_id>/delete', methods=['POST'])
