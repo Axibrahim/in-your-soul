@@ -35,11 +35,11 @@ def login():
     if current_user.is_authenticated:
         return redirect(url_for('main.index'))
     if request.method == 'POST':
-        username = request.form.get('username', '').strip()
+        username = request.form.get('username', '').strip().lower()
         password = request.form.get('password', '')
         remember = request.form.get('remember', False)
 
-        user = User.query.filter_by(username=username).first()
+        user = User.query.filter(db.func.lower(User.username) == username).first()
         if user and user.check_password(password):
             if not user.email_verified:
                 flash('Please verify your email before logging in.', 'danger')
@@ -119,7 +119,7 @@ def register():
     if current_user.is_authenticated:
         return redirect(url_for('main.index'))
     if request.method == 'POST':
-        username = request.form.get('username', '').strip()
+        username = request.form.get('username', '').strip().lower()
         email = request.form.get('email', '').strip().lower()
         phone = request.form.get('phone', '').strip()
         password = request.form.get('password', '')
@@ -151,7 +151,8 @@ def register():
             flash('Email already registered.', 'danger')
             return render_template('auth/register.html')
 
-        if User.query.filter_by(username=username).first():
+        if User.query.filter(
+        db.func.lower(User.username) == username).first():
             flash('Username already taken.', 'danger')
             return render_template('auth/register.html')
 

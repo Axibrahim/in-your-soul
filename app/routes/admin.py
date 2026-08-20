@@ -41,22 +41,17 @@ def slugify(text):
 
 
 def save_product_image(file):
-    """
-    Validate that the uploaded file is a genuine image (not just something
-    with a spoofed .jpg extension) by actually decoding it with Pillow, then
-    upload it directly to Supabase Storage. Returns the public URL, or None if
-    the file was rejected.
-    """
     if not file or not file.filename or not allowed_file(file.filename):
         return None
 
     try:
         image = Image.open(file.stream)
-        image.verify()  # raises if the content isn't a valid image
+        image.verify()
         file.stream.seek(0)
-        image = Image.open(file.stream)  # re-open after verify()
+        image = Image.open(file.stream)
         image_format = image.format
     except Exception:
+        current_app.logger.warning("Image validation failed for %s", file.filename)
         return None
 
     if image_format not in ALLOWED_PIL_FORMATS:
@@ -66,26 +61,26 @@ def save_product_image(file):
     ext = image_format.lower().replace('jpeg', 'jpg')
     filename = f"{base}_{int(time.time())}_{secrets.token_hex(4)}.{ext}"
 
-    if image.mode in ('P', 'RGBA') and image_format == 'JPEG':
-        image = image.convert('RGB')
+    content_type_map = {'jpg': 'image/jpeg', 'png': 'image/png', 'webp': 'image/webp', 'gif': 'image/gif'}
+    content_type = content_type_map.get(ext, file.content_type or 'application/octet-stream')
 
     if not supabase:
+        current_app.logger.error("Supabase client not configured — check SUPABASE_URL / SUPABASE_KEY env vars")
         return None
 
     try:
-        # Rewind stream and read bytes for Supabase upload
         file.stream.seek(0)
         file_bytes = file.stream.read()
-        
+
         supabase.storage.from_(BUCKET_NAME).upload(
             path=filename,
             file=file_bytes,
-            file_options={"content-type": file.content_type, "upsert": "true"}
+            file_options={"content-type": content_type, "upsert": "true"}
         )
         return supabase.storage.from_(BUCKET_NAME).get_public_url(filename)
-    except Exception:
+    except Exception as e:
+        current_app.logger.exception("Supabase upload failed for %s: %s", filename, e)
         return None
-
 
 @admin_bp.route('/')
 @login_required
