@@ -25,7 +25,7 @@ def confirm_verify_token(token: str):
 
 
 def _resend_send_template(to_email: str, subject: str, template_id: str, variables: dict) -> bool:
-    """Helper to send emails using Resend templates via template ID."""
+    """Helper to send emails using Resend templates."""
     resend.api_key = os.environ.get('RESEND_API_KEY')
     from_email = os.environ.get('RESEND_FROM_EMAIL')
 
@@ -52,7 +52,6 @@ def _resend_send_template(to_email: str, subject: str, template_id: str, variabl
 def send_verification_email(to_email: str, token: str, first_name: str = "") -> bool:
     link = url_for('auth.verify_email', token=token, _external=True)
     
-    # Matches the {{{verification_url}}} and {{{first_name}}} variables configured in Resend
     variables = {
         "verification_url": link,
         "first_name": first_name or "Friend"
