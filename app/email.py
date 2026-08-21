@@ -24,7 +24,8 @@ def confirm_verify_token(token: str):
         return None
 
 
-def _resend_send(to_email: str, subject: str, text_body: str) -> bool:
+def _resend_send_template(to_email: str, subject: str, template_name: str, variables: dict) -> bool:
+    """Helper to send emails using Resend templates."""
     resend.api_key = os.environ.get('RESEND_API_KEY')
     from_email = os.environ.get('RESEND_FROM_EMAIL')
 
@@ -35,25 +36,34 @@ def _resend_send(to_email: str, subject: str, text_body: str) -> bool:
     try:
         resend.Emails.send({
             "from": from_email,
-            "to": to_email,
+            "to": [to_email],
             "subject": subject,
-            "text": text_body,
+            "template": {
+                "name": template_name,
+                "variables": variables,
+            },
         })
         return True
     except Exception as e:
-        print(f"Failed to send email via Resend: {e}")
+        print(f"Failed to send email via Resend template: {e}")
         return False
 
 
-def send_verification_email(to_email: str, token: str) -> bool:
+def send_verification_email(to_email: str, token: str, first_name: str = "") -> bool:
     link = url_for('auth.verify_email', token=token, _external=True)
-    body = (
-        f"Welcome to IN YOUR SOUL.\n\n"
-        f"Click the link below to verify your email address. "
-        f"It expires in 1 hour.\n\n{link}\n\n"
-        f"If you didn't create this account, ignore this email."
+    
+    # Matches the {{{verification_url}}} and {{{first_name}}} variables configured in Resend
+    variables = {
+        "verification_url": link,
+        "first_name": first_name or "Friend"
+    }
+    
+    return _resend_send_template(
+        to_email=to_email,
+        subject='Verify your IN YOUR SOUL account',
+        template_name='verification-template',
+        variables=variables
     )
-    return _resend_send(to_email, 'Verify your IN YOUR SOUL account', body)
 
 
 def generate_reset_token(email: str) -> str:
@@ -80,4 +90,21 @@ def send_reset_email(to_email: str, token: str) -> bool:
         f"If you didn't request this, you can safely ignore this email — "
         f"your password will not be changed."
     )
-    return _resend_send(to_email, 'Reset your IN YOUR SOUL password', body)
+    
+    resend.api_key = os.environ.get('RESEND_API_KEY')
+    from_email = os.environ.get('RESEND_FROM_EMAIL')
+
+    if not resend.api_key or not from_email:
+        return False
+
+    try:
+        resend.Emails.send({
+            "from": from_email,
+            "to": [to_email],
+            "subject": 'Reset your IN YOUR SOUL password',
+            "text": body,
+        })
+        return True
+    except Exception as e:
+        print(f"Failed to send reset email: {e}")
+        return False

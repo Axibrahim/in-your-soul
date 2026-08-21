@@ -42,12 +42,14 @@ def login():
         user = User.query.filter(db.func.lower(User.username) == username).first()
         if user and user.check_password(password):
             if not user.email_verified:
+                # Save user ID so they can resend if needed
+                session['pending_verify_user_id'] = user.id
                 flash('Please verify your email before logging in.', 'danger')
-                return redirect(url_for('auth.login'))
+                return redirect(url_for('auth.check_email'))
             login_user(user, remember=bool(remember))
             issue_session_token(user)
             next_page = _safe_next_url(request.args.get('next'))
-            flash('Welcome back to FREKS.', 'success')
+            flash('Welcome back.', 'success')
             return redirect(next_page or url_for('main.index'))
         else:
             flash('Invalid username or password.', 'danger')
@@ -151,8 +153,7 @@ def register():
             flash('Email already registered.', 'danger')
             return render_template('auth/register.html')
 
-        if User.query.filter(
-        db.func.lower(User.username) == username).first():
+        if User.query.filter(db.func.lower(User.username) == username).first():
             flash('Username already taken.', 'danger')
             return render_template('auth/register.html')
 
@@ -169,7 +170,7 @@ def register():
         db.session.commit()
 
         token = generate_verify_token(email)
-        send_verification_email(email, token)
+        send_verification_email(email, token, first_name=first_name)
 
         session['pending_verify_user_id'] = user.id
         flash('Check your email for a verification link.', 'info')
@@ -204,7 +205,7 @@ def verify_email(token):
     session.pop('pending_verify_user_id', None)
     login_user(user)
     issue_session_token(user)
-    flash('Email verified. Welcome to FREKS.', 'success')
+    flash('Email verified. Welcome to IN YOUR SOUL.', 'success')
     return redirect(url_for('main.index'))
 
 
@@ -216,7 +217,7 @@ def resend_verification():
         user = User.query.get(user_id) if user_id else None
         if user and not user.email_verified:
             token = generate_verify_token(user.email)
-            send_verification_email(user.email, token)
+            send_verification_email(user.email, token, first_name=user.first_name)
             flash('Verification email resent.', 'info')
         else:
             flash('Nothing to resend.', 'info')
