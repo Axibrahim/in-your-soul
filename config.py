@@ -1,6 +1,6 @@
 import os
-from dotenv import load_dotenv
 from datetime import timedelta
+from dotenv import load_dotenv
 
 load_dotenv()
 
@@ -13,11 +13,13 @@ if database_url and database_url.startswith("postgres://"):
 
 
 class Config:
-    SECRET_KEY = os.environ.get("SECRET_KEY") or "you-will-never-guess"
+    SECRET_KEY = (
+        os.environ.get("SECRET_KEY")
+        or "d9ca01d7ec59501d174e014aafc4bac3a36b43e04fa2e695b4a493f59c3d3820"
+    )
 
     SQLALCHEMY_DATABASE_URI = (
-        database_url
-        or f"sqlite:///{os.path.join(basedir, 'freks.db')}"
+        database_url or f"sqlite:///{os.path.join(basedir, 'freks.db')}"
     )
 
     SQLALCHEMY_TRACK_MODIFICATIONS = False
@@ -26,12 +28,10 @@ class Config:
     REMEMBER_COOKIE_DURATION = timedelta(days=30)
     WTF_CSRF_ENABLED = True
 
-    # Cookie hardening (applies to both the session cookie and the
-    # "remember me" cookie)
-
     EMAIL_VERIFY_MAX_AGE_SECONDS = 3600  # 1 hour
     PASSWORD_RESET_MAX_AGE_SECONDS = 1800  # 30 minutes
 
+    # Cookie hardening
     SESSION_COOKIE_HTTPONLY = True
     SESSION_COOKIE_SAMESITE = "Lax"
     REMEMBER_COOKIE_HTTPONLY = True

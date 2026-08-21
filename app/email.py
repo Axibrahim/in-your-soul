@@ -15,10 +15,11 @@ def generate_verify_token(email: str) -> str:
 def confirm_verify_token(token: str):
     """Returns the email if the token is valid and not expired, else None."""
     try:
+        max_age = current_app.config.get('EMAIL_VERIFY_MAX_AGE_SECONDS', 3600)
         return _serializer().loads(
             token,
             salt='email-verify',
-            max_age=current_app.config['EMAIL_VERIFY_MAX_AGE_SECONDS'],
+            max_age=max_age,
         )
     except Exception:
         return None
@@ -30,7 +31,6 @@ def _resend_send_template(to_email: str, subject: str, template_id: str, variabl
     from_email = os.environ.get('RESEND_FROM_EMAIL')
 
     if not resend.api_key or not from_email:
-        print("RESEND_API_KEY or RESEND_FROM_EMAIL is not configured.")
         return False
 
     try:
@@ -44,19 +44,18 @@ def _resend_send_template(to_email: str, subject: str, template_id: str, variabl
             },
         })
         return True
-    except Exception as e:
-        print(f"Failed to send email via Resend template: {e}")
+    except Exception:
         return False
 
 
 def send_verification_email(to_email: str, token: str, first_name: str = "") -> bool:
     link = url_for('auth.verify_email', token=token, _external=True)
-    
+
     variables = {
         "verification_url": link,
         "first_name": first_name or "Friend"
     }
-    
+
     return _resend_send_template(
         to_email=to_email,
         subject='Verify your IN YOUR SOUL account',
@@ -72,10 +71,11 @@ def generate_reset_token(email: str) -> str:
 def confirm_reset_token(token: str):
     """Returns the email if valid and not expired, else None."""
     try:
+        max_age = current_app.config.get('PASSWORD_RESET_MAX_AGE_SECONDS', 1800)
         return _serializer().loads(
             token,
             salt='password-reset',
-            max_age=current_app.config['PASSWORD_RESET_MAX_AGE_SECONDS'],
+            max_age=max_age,
         )
     except Exception:
         return None
@@ -89,7 +89,7 @@ def send_reset_email(to_email: str, token: str) -> bool:
         f"If you didn't request this, you can safely ignore this email — "
         f"your password will not be changed."
     )
-    
+
     resend.api_key = os.environ.get('RESEND_API_KEY')
     from_email = os.environ.get('RESEND_FROM_EMAIL')
 
@@ -104,6 +104,5 @@ def send_reset_email(to_email: str, token: str) -> bool:
             "text": body,
         })
         return True
-    except Exception as e:
-        print(f"Failed to send reset email: {e}")
+    except Exception:
         return False
