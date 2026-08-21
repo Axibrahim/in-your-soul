@@ -1,11 +1,14 @@
 import os
+import sys
 import resend
 from flask import current_app, url_for
 from itsdangerous import URLSafeTimedSerializer
 
 
 def _serializer():
-    return URLSafeTimedSerializer(current_app.config['SECRET_KEY'])
+    # Use config SECRET_KEY or fall back to an environment key so worker nodes share tokens identically
+    secret = current_app.config.get('SECRET_KEY') or os.environ.get('SECRET_KEY', 'default-fallback-secret-key')
+    return URLSafeTimedSerializer(secret)
 
 
 def generate_verify_token(email: str) -> str:
@@ -21,7 +24,8 @@ def confirm_verify_token(token: str):
             salt='email-verify',
             max_age=max_age,
         )
-    except Exception:
+    except Exception as e:
+        print(f"[TOKEN ERROR] Verification failed: {e}", file=sys.stderr, flush=True)
         return None
 
 
@@ -31,6 +35,7 @@ def _resend_send_template(to_email: str, subject: str, template_id: str, variabl
     from_email = os.environ.get('RESEND_FROM_EMAIL')
 
     if not resend.api_key or not from_email:
+        print("[RESEND ERROR] Missing API Key or From Email environment variables.", file=sys.stderr, flush=True)
         return False
 
     try:
@@ -44,7 +49,8 @@ def _resend_send_template(to_email: str, subject: str, template_id: str, variabl
             },
         })
         return True
-    except Exception:
+    except Exception as e:
+        print(f"[RESEND ERROR] Failed to send template email: {e}", file=sys.stderr, flush=True)
         return False
 
 
@@ -77,7 +83,8 @@ def confirm_reset_token(token: str):
             salt='password-reset',
             max_age=max_age,
         )
-    except Exception:
+    except Exception as e:
+        print(f"[TOKEN ERROR] Reset confirmation failed: {e}", file=sys.stderr, flush=True)
         return None
 
 
@@ -94,6 +101,7 @@ def send_reset_email(to_email: str, token: str) -> bool:
     from_email = os.environ.get('RESEND_FROM_EMAIL')
 
     if not resend.api_key or not from_email:
+        print("[RESEND ERROR] Missing API Key or From Email environment variables.", file=sys.stderr, flush=True)
         return False
 
     try:
@@ -104,5 +112,6 @@ def send_reset_email(to_email: str, token: str) -> bool:
             "text": body,
         })
         return True
-    except Exception:
+    except Exception as e:
+        print(f"[RESEND ERROR] Failed to send reset email: {e}", file=sys.stderr, flush=True)
         return False

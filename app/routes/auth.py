@@ -199,28 +199,44 @@ def check_email():
 
 @auth_bp.route('/verify-email/<token>')
 def verify_email(token):
+    print(f"[VERIFY DEBUG] Endpoint hit with token: {token}")
+
     email = confirm_verify_token(token)
     if not email:
+        print("[VERIFY DEBUG] confirm_verify_token returned None (Invalid or Expired Token)")
         flash('That verification link is invalid or expired.', 'danger')
         return redirect(url_for('auth.resend_verification'))
 
+    print(f"[VERIFY DEBUG] Decoded email: {email}")
+
     user = User.query.filter_by(email=email).first()
     if not user:
+        print(f"[VERIFY DEBUG] No user found in DB for email: {email}")
         flash('Account not found.', 'danger')
         return redirect(url_for('auth.register'))
+
+    print(f"[VERIFY DEBUG] User found (ID: {user.id}, email_verified: {user.email_verified})")
 
     session.pop('pending_verify_user_id', None)
 
     if user.email_verified:
+        print("[VERIFY DEBUG] User is already verified. Redirecting...")
         login_user(user, remember=True)
         issue_session_token(user)
         flash('Email already verified. Welcome back!', 'info')
         return redirect(url_for('main.index'))
 
     # Update database record and commit transaction
-    user.email_verified = True
-    db.session.add(user)
-    db.session.commit()
+    try:
+        user.email_verified = True
+        db.session.add(user)
+        db.session.commit()
+        print(f"[VERIFY DEBUG] Successfully updated user {user.id} email_verified to True")
+    except Exception as e:
+        db.session.rollback()
+        print(f"[VERIFY DEBUG] Database commit failed: {e}")
+        flash('Database update error. Please try again.', 'danger')
+        return redirect(url_for('auth.login'))
 
     # Log user in and issue active session guard token
     login_user(user, remember=True)

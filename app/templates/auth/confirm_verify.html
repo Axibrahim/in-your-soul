@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container text-center mt-5">
+    <h2>Confirm Your Email</h2>
+    <p>Click the button below to complete your registration.</p>
+    <form method="POST" action="{{ url_for('auth.verify_email', token=token) }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+        <button type="submit" class="btn btn-primary">Verify My Email</button>
+    </form>
+</div>
+{% endblock %}

@@ -49,7 +49,7 @@ class Address(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     def __repr__(self):
-        return f'<Address {self.label} - {self.city}>'
+        return f'<Address {self.label} - {self.governorate}>'
 
 
 class Category(db.Model):
