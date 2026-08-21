@@ -203,19 +203,21 @@ def verify_email(token):
 
     # 1. If already verified, log them in and redirect straight to main page
     if user.email_verified:
-        login_user(user)
+        login_user(user, remember=True)
         issue_session_token(user)
         flash('Email already verified. Welcome back!', 'info')
         return redirect(url_for('main.index'))
 
-    # 2. Mark as verified and log in
+    # 2. Mark as verified and persist to database explicitly
     user.email_verified = True
+    db.session.add(user)
     db.session.commit()
 
-    login_user(user)
+    # 3. Log user in automatically and issue auth session guard token
+    login_user(user, remember=True)
     issue_session_token(user)
 
-    flash('Email verified. Welcome to IN YOUR SOUL.', 'success')
+    flash('Email verified! You are now logged in.', 'success')
     return redirect(url_for('main.index'))
 
 
