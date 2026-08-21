@@ -1,17 +1,26 @@
-from flask import Blueprint, render_template, redirect, session, url_for, flash, request, current_app
-from flask_login import login_user, logout_user, login_required, current_user
-from app.auth_guard import issue_session_token, revoke_session_token
-from app.models import User, db
-from app import limiter
 from urllib.parse import urlparse
-from app.email import (
-    generate_verify_token,
-    confirm_verify_token,
-    send_verification_email,
-    generate_reset_token,
-    confirm_reset_token,
-    send_reset_email,
+from flask import (
+    Blueprint,
+    flash,
+    redirect,
+    render_template,
+    request,
+    session,
+    url_for,
 )
+from flask_login import current_user, login_required, login_user, logout_user
+
+from app import limiter
+from app.auth_guard import issue_session_token, revoke_session_token
+from app.email import (
+    confirm_reset_token,
+    confirm_verify_token,
+    generate_reset_token,
+    generate_verify_token,
+    send_reset_email,
+    send_verification_email,
+)
+from app.models import User, db
 
 
 def _safe_next_url(target):
@@ -30,7 +39,7 @@ auth_bp = Blueprint('auth', __name__)
 
 
 @auth_bp.route('/login', methods=['GET', 'POST'])
-@limiter.limit("5 per minute")
+@limiter.limit('5 per minute')
 def login():
     if current_user.is_authenticated:
         return redirect(url_for('main.index'))
@@ -42,7 +51,6 @@ def login():
         user = User.query.filter(db.func.lower(User.username) == username).first()
         if user and user.check_password(password):
             if not user.email_verified:
-                # Save user ID so they can resend if needed
                 session['pending_verify_user_id'] = user.id
                 flash('Please verify your email before logging in.', 'danger')
                 return redirect(url_for('auth.check_email'))
@@ -58,7 +66,7 @@ def login():
 
 
 @auth_bp.route('/forgot-password', methods=['GET', 'POST'])
-@limiter.limit("5 per hour")
+@limiter.limit('5 per hour')
 def forgot_password():
     if current_user.is_authenticated:
         return redirect(url_for('main.index'))
@@ -71,14 +79,17 @@ def forgot_password():
             token = generate_reset_token(user.email)
             send_reset_email(user.email, token)
 
-        flash('If that verified email belongs to an account, a reset link has been sent.', 'info')
+        flash(
+            'If that verified email belongs to an account, a reset link has been sent.',
+            'info',
+        )
         return redirect(url_for('auth.login'))
 
     return render_template('auth/forgot_password.html')
 
 
 @auth_bp.route('/reset-password/<token>', methods=['GET', 'POST'])
-@limiter.limit("5 per hour")
+@limiter.limit('5 per hour')
 def reset_password(token):
     if current_user.is_authenticated:
         return redirect(url_for('main.index'))
@@ -116,7 +127,7 @@ def reset_password(token):
 
 
 @auth_bp.route('/register', methods=['GET', 'POST'])
-@limiter.limit("3 per hour")
+@limiter.limit('3 per hour')
 def register():
     if current_user.is_authenticated:
         return redirect(url_for('main.index'))
@@ -198,22 +209,20 @@ def verify_email(token):
         flash('Account not found.', 'danger')
         return redirect(url_for('auth.register'))
 
-    # Clear pending user ID from session
     session.pop('pending_verify_user_id', None)
 
-    # 1. If already verified, log them in and redirect straight to main page
     if user.email_verified:
         login_user(user, remember=True)
         issue_session_token(user)
         flash('Email already verified. Welcome back!', 'info')
         return redirect(url_for('main.index'))
 
-    # 2. Mark as verified and persist to database explicitly
+    # Update database record and commit transaction
     user.email_verified = True
     db.session.add(user)
     db.session.commit()
 
-    # 3. Log user in automatically and issue auth session guard token
+    # Log user in and issue active session guard token
     login_user(user, remember=True)
     issue_session_token(user)
 
@@ -222,7 +231,7 @@ def verify_email(token):
 
 
 @auth_bp.route('/resend-verification', methods=['GET', 'POST'])
-@limiter.limit("5 per hour")
+@limiter.limit('5 per hour')
 def resend_verification():
     if request.method == 'POST':
         user_id = session.get('pending_verify_user_id')
