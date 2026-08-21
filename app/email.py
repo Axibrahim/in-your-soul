@@ -24,8 +24,8 @@ def confirm_verify_token(token: str):
         return None
 
 
-def _resend_send_template(to_email: str, subject: str, template_alias: str, variables: dict) -> bool:
-    """Helper to send emails using Resend templates via template alias."""
+def _resend_send_template(to_email: str, subject: str, template_id: str, variables: dict) -> bool:
+    """Helper to send emails using Resend templates via template ID."""
     resend.api_key = os.environ.get('RESEND_API_KEY')
     from_email = os.environ.get('RESEND_FROM_EMAIL')
 
@@ -39,7 +39,7 @@ def _resend_send_template(to_email: str, subject: str, template_alias: str, vari
             "to": [to_email],
             "subject": subject,
             "template": {
-                "alias": template_alias,
+                "id": template_id,
                 "variables": variables,
             },
         })
@@ -61,7 +61,7 @@ def send_verification_email(to_email: str, token: str, first_name: str = "") -> 
     return _resend_send_template(
         to_email=to_email,
         subject='Verify your IN YOUR SOUL account',
-        template_alias='verification-template',
+        template_id='5801c34f-63fb-44fe-9fd5-819d352f24d7',
         variables=variables
     )
 
