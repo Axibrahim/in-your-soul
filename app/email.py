@@ -55,10 +55,22 @@ def _resend_send_template(to_email: str, subject: str, template_id: str, variabl
 
 
 def send_verification_email(to_email: str, token: str, first_name: str = "") -> bool:
-    link = url_for('auth.verify_email', token=token, _external=True)
+    base_url = os.environ.get('BASE_URL', 'https://inyoursoul.store').rstrip('/')
+    
+    try:
+        path = url_for('auth.verify_email', token=token)
+    except Exception:
+        path = f"/verify-email/{token}"
+
+    full_link = f"{base_url}{path}"
+    
+    # Strip protocol so Resend's 'https://{{verification_url}}' template link doesn't double 'https://'
+    clean_url = full_link.replace('https://', '').replace('http://', '')
+    
+    print(f"[EMAIL DEBUG] Clean Verification URL generated: {clean_url}", file=sys.stderr, flush=True)
 
     variables = {
-        "verification_url": link,
+        "verification_url": clean_url,
         "first_name": first_name or "Friend"
     }
 
@@ -89,7 +101,15 @@ def confirm_reset_token(token: str):
 
 
 def send_reset_email(to_email: str, token: str) -> bool:
-    link = url_for('auth.reset_password', token=token, _external=True)
+    base_url = os.environ.get('BASE_URL', 'https://inyoursoul.store').rstrip('/')
+    try:
+        path = url_for('auth.reset_password', token=token)
+    except Exception:
+        path = f"/reset-password/{token}"
+
+    link = f"{base_url}{path}"
+    print(f"[EMAIL DEBUG] Reset URL generated: {link}", file=sys.stderr, flush=True)
+
     body = (
         f"We received a request to reset your IN YOUR SOUL password.\n\n"
         f"Click the link below to set a new password. It expires in 30 minutes.\n\n{link}\n\n"
