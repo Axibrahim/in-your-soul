@@ -1,3 +1,4 @@
+import sys
 from urllib.parse import urlparse
 from flask import (
     Blueprint,
@@ -54,8 +55,11 @@ def login():
                 session['pending_verify_user_id'] = user.id
                 flash('Please verify your email before logging in.', 'danger')
                 return redirect(url_for('auth.check_email'))
-            login_user(user, remember=bool(remember))
+            
             issue_session_token(user)
+            db.session.commit()
+            login_user(user, remember=bool(remember))
+            
             next_page = _safe_next_url(request.args.get('next'))
             flash('Welcome back.', 'success')
             return redirect(next_page or url_for('main.index'))
@@ -199,49 +203,36 @@ def check_email():
 
 @auth_bp.route('/verify-email/<token>')
 def verify_email(token):
-    print(f"[VERIFY DEBUG] Endpoint hit with token: {token}")
+    print(f"[VERIFY DEBUG] Endpoint hit with token: {token}", file=sys.stderr, flush=True)
 
     email = confirm_verify_token(token)
     if not email:
-        print("[VERIFY DEBUG] confirm_verify_token returned None (Invalid or Expired Token)")
+        print("[VERIFY DEBUG] Token decoding failed or token expired.", file=sys.stderr, flush=True)
         flash('That verification link is invalid or expired.', 'danger')
         return redirect(url_for('auth.resend_verification'))
 
-    print(f"[VERIFY DEBUG] Decoded email: {email}")
+    print(f"[VERIFY DEBUG] Decoded email: {email}", file=sys.stderr, flush=True)
 
     user = User.query.filter_by(email=email).first()
     if not user:
-        print(f"[VERIFY DEBUG] No user found in DB for email: {email}")
+        print(f"[VERIFY DEBUG] No user found in DB for email: {email}", file=sys.stderr, flush=True)
         flash('Account not found.', 'danger')
         return redirect(url_for('auth.register'))
 
-    print(f"[VERIFY DEBUG] User found (ID: {user.id}, email_verified: {user.email_verified})")
-
     session.pop('pending_verify_user_id', None)
 
-    if user.email_verified:
-        print("[VERIFY DEBUG] User is already verified. Redirecting...")
-        login_user(user, remember=True)
-        issue_session_token(user)
-        flash('Email already verified. Welcome back!', 'info')
-        return redirect(url_for('main.index'))
-
-    # Update database record and commit transaction
     try:
         user.email_verified = True
-        db.session.add(user)
+        issue_session_token(user)
         db.session.commit()
-        print(f"[VERIFY DEBUG] Successfully updated user {user.id} email_verified to True")
+        print(f"[VERIFY DEBUG] Successfully updated user {user.id} email_verified to True", file=sys.stderr, flush=True)
     except Exception as e:
         db.session.rollback()
-        print(f"[VERIFY DEBUG] Database commit failed: {e}")
+        print(f"[VERIFY DEBUG] Database commit failed: {e}", file=sys.stderr, flush=True)
         flash('Database update error. Please try again.', 'danger')
         return redirect(url_for('auth.login'))
 
-    # Log user in and issue active session guard token
     login_user(user, remember=True)
-    issue_session_token(user)
-
     flash('Email verified! You are now logged in.', 'success')
     return redirect(url_for('main.index'))
 
