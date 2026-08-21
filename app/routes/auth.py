@@ -198,13 +198,23 @@ def verify_email(token):
         flash('Account not found.', 'danger')
         return redirect(url_for('auth.register'))
 
-    if not user.email_verified:
-        user.email_verified = True
-        db.session.commit()
-
+    # Clear pending user ID from session
     session.pop('pending_verify_user_id', None)
+
+    # 1. If already verified, log them in and redirect straight to main page
+    if user.email_verified:
+        login_user(user)
+        issue_session_token(user)
+        flash('Email already verified. Welcome back!', 'info')
+        return redirect(url_for('main.index'))
+
+    # 2. Mark as verified and log in
+    user.email_verified = True
+    db.session.commit()
+
     login_user(user)
     issue_session_token(user)
+
     flash('Email verified. Welcome to IN YOUR SOUL.', 'success')
     return redirect(url_for('main.index'))
 
