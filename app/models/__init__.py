@@ -69,6 +69,8 @@ class Product(db.Model):
     category_id = db.Column(db.Integer, db.ForeignKey('categories.id'))
     image_url = db.Column(db.String(300))
     image_url_2 = db.Column(db.String(300))
+    image_url_3 = db.Column(db.String(300))
+    image_url_4 = db.Column(db.String(300))
     is_featured = db.Column(db.Boolean, default=False)
     is_active = db.Column(db.Boolean, default=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)

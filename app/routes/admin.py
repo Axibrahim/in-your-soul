@@ -1,4 +1,3 @@
-
 from flask import Blueprint, render_template, redirect, url_for, flash, request, jsonify, current_app
 from flask_login import login_required, current_user
 from app.models import OrderItem, Product, ProductVariant, Category, Order, User, db
@@ -82,6 +81,7 @@ def save_product_image(file):
         current_app.logger.exception("Supabase upload failed for %s: %s", filename, e)
         return None
 
+
 @admin_bp.route('/')
 @login_required
 @admin_required
@@ -136,7 +136,13 @@ def add_product():
             is_featured=is_featured
         )
 
-        for field_name, attr in [('image', 'image_url'), ('image2', 'image_url_2')]:
+        image_fields = [
+            ('image', 'image_url'),
+            ('image2', 'image_url_2'),
+            ('image3', 'image_url_3'),
+            ('image4', 'image_url_4')
+        ]
+        for field_name, attr in image_fields:
             file = request.files.get(field_name)
             public_url = save_product_image(file)
             if public_url:
@@ -176,7 +182,13 @@ def edit_product(product_id):
         product.is_featured = request.form.get('is_featured') == 'on'
         product.is_active = request.form.get('is_active') == 'on'
 
-        for field_name, attr in [('image', 'image_url'), ('image2', 'image_url_2')]:
+        image_fields = [
+            ('image', 'image_url'),
+            ('image2', 'image_url_2'),
+            ('image3', 'image_url_3'),
+            ('image4', 'image_url_4')
+        ]
+        for field_name, attr in image_fields:
             file = request.files.get(field_name)
             public_url = save_product_image(file)
             if public_url:
@@ -284,6 +296,7 @@ def delete_product(product_id):
 
     flash(f'Product "{product.name}" permanently deleted.', 'success')
     return redirect(url_for('admin.products'))
+
 
 @admin_bp.route('/products/<int:product_id>/toggle', methods=['POST'])
 @login_required
