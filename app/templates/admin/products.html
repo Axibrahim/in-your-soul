@@ -42,10 +42,22 @@
         </td>
         <td style="font-size:0.8rem;color:var(--text-dim);">{{ product.category.name if product.category else '—' }}</td>
         <td style="font-family:var(--font-display);font-size:0.85rem;">{{ "%.0f"|format(product.price) }} EGP</td>
-        <td>
-          {% set stock = product.get_total_stock() %}
-          <span style="font-family:var(--font-display);font-size:0.85rem;color:{% if stock == 0 %}var(--danger){% elif stock <= 5 %}#ffab00{% else %}var(--accent){% endif %};">{{ stock }}</span>
-        </td>
+<td>
+  {% set stock = product.get_total_stock() %}
+
+  <span
+    class="product-stock
+      {% if stock == 0 %}
+        product-stock--empty
+      {% elif stock <= 5 %}
+        product-stock--low
+      {% else %}
+        product-stock--good
+      {% endif %}"
+  >
+    {{ stock }}
+  </span>
+</td>
         <td>
           {% if product.is_featured %}
           <span class="badge badge--success">YES</span>

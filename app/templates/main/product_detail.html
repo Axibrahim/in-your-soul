@@ -74,6 +74,19 @@
         </div>
       </div>
 
+      <!-- SIZE CHART -->
+      <div class="size-chart">
+        <div class="size-chart-header">
+          <span class="size-label">SIZE CHART</span>
+        </div>
+
+        <img
+          src="{{ url_for('static', filename='images/size-chart.jpg') }}"
+          alt="IN YOUR SOUL Size Chart"
+          loading="lazy"
+        />
+      </div>
+
       <!-- STOCK INFO -->
       {% set total_stock = product.get_total_stock() %}
       {% if total_stock > 0 %}

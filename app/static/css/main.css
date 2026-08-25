@@ -1644,6 +1644,23 @@ a:hover {
   font-weight: 700;
 }
 
+.product-stock {
+  font-family: var(--font-display);
+  font-size: 0.85rem;
+}
+
+.product-stock--empty {
+  color: var(--danger);
+}
+
+.product-stock--low {
+  color: #ffab00;
+}
+
+.product-stock--good {
+  color: var(--accent);
+}
+
 /* ============================================ TABLE */
 .table-wrap {
   overflow-x: auto;
@@ -2617,4 +2634,34 @@ tbody tr:hover {
     padding: 1.75rem 1rem !important;
   }
 
+}
+
+/* =========================================================
+   SIZE CHART
+   ========================================================= */
+
+.size-chart {
+  margin-top: 1.5rem;
+  margin-bottom: 1.5rem;
+  border-top: 1px solid var(--border);
+  padding-top: 1.25rem;
+}
+
+.size-chart-header {
+  margin-bottom: 0.75rem;
+}
+
+.size-chart-header .size-label {
+  display: block;
+  font-family: var(--font-display);
+  font-size: 0.65rem;
+  letter-spacing: 0.15em;
+  color: var(--text-dim);
+}
+
+.size-chart img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border: 1px solid var(--border);
 }
