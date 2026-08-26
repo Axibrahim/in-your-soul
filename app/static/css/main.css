@@ -2187,37 +2187,18 @@ tbody tr:hover {
   }
 
   .nav-actions > .nav-link,
-  .nav-actions > .btn,
-  .nav-cart {
+  .nav-actions > .btn {
     display: none;
+  }
+
+  .nav-cart {
+    display: flex;
   }
 
   .nav-burger {
     display: flex;
     background: rgba(4, 8, 4, 0.75);
     z-index: 1002;
-  }
-
-  body:has(.hero) .nav-actions > .nav-link,
-  body:has(.hero) .nav-actions > .btn {
-    display: flex;
-    align-items: center;
-    white-space: nowrap;
-  }
-
-  body:has(.hero) .nav-actions .nav-link {
-    font-size: 0.72rem;
-    letter-spacing: 0.16em;
-  }
-
-  body:has(.hero) .nav-actions .btn {
-    min-height: 48px;
-    padding: 0.7rem 1.5rem;
-  }
-
-  body:has(.hero) .nav-cart,
-  body:has(.hero) .nav-burger {
-    display: none;
   }
 
   .nav-mobile {
