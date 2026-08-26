@@ -15,7 +15,6 @@ if database_url and database_url.startswith("postgres://"):
 class Config:
     SECRET_KEY = (
         os.environ.get("SECRET_KEY")
-        or "d9ca01d7ec59501d174e014aafc4bac3a36b43e04fa2e695b4a493f59c3d3820"
     )
 
     SQLALCHEMY_DATABASE_URI = (

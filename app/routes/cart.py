@@ -36,7 +36,7 @@ def view_cart():
                 'quantity': item['quantity'],
                 'total': total
             })
-    shipping = DELIVERY_FEE
+    shipping = 0 if subtotal >= 1500 else DELIVERY_FEE
     return render_template('main/cart.html', items=items, subtotal=subtotal, shipping=shipping, total=subtotal + shipping)
 
 
@@ -148,8 +148,10 @@ def checkout():
                 'quantity': item['quantity'],
                 'total': total
             })
-
-    shipping = DELIVERY_FEE
+    if subtotal >= 1500:
+        shipping = 0
+    else:
+        shipping = DELIVERY_FEE
     grand_total = subtotal + shipping
 
     if request.method == 'POST':

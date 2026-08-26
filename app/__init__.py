@@ -19,7 +19,7 @@ def create_app(config_name='default'):
     app = Flask(__name__)
     app.config.from_object(config[config_name])
     if config_name == 'production':
-        if app.config['SECRET_KEY'] == 'you-will-never-guess':
+        if not app.config['SECRET_KEY']:
             raise RuntimeError("SECRET_KEY env var must be set in production.")
         if not os.environ.get('DATABASE_URL'):
             raise RuntimeError("DATABASE_URL env var must be set in production.")

@@ -6,8 +6,9 @@ from itsdangerous import URLSafeTimedSerializer
 
 
 def _serializer():
-    # Use config SECRET_KEY or fall back to an environment key so worker nodes share tokens identically
-    secret = current_app.config.get('SECRET_KEY') or os.environ.get('SECRET_KEY', 'default-fallback-secret-key')
+    secret = current_app.config['SECRET_KEY']
+    if not secret:
+        raise RuntimeError("SECRET_KEY is not configured.")
     return URLSafeTimedSerializer(secret)
 
 
