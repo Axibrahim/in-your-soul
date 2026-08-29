@@ -75,17 +75,20 @@
 
       <div class="field">
         <label>VALUE</label>
-        <input type="number" step="0.01" name="value" placeholder="10" required/>
+        <input type="text" inputmode="decimal" pattern="[0-9]*\.?[0-9]*" name="value" placeholder="10" required
+               oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');"/>
       </div>
-
+      
       <div class="field">
         <label>MINIMUM ORDER (EGP) <span style="color:var(--muted);">optional</span></label>
-        <input type="number" step="0.01" name="min_subtotal" placeholder="0"/>
+        <input type="text" inputmode="decimal" pattern="[0-9]*\.?[0-9]*" name="min_subtotal" placeholder="0"
+               oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');"/>
       </div>
 
       <div class="field">
         <label>MAX USES <span style="color:var(--muted);">optional, blank = unlimited</span></label>
-        <input type="number" name="max_uses" placeholder="e.g. 100"/>
+        <input type="text" inputmode="decimal" pattern="[0-9]*\.?[0-9]*" name="max_uses" placeholder="e.g. 100"
+               oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');"/>
       </div>
 
       <div class="field">
