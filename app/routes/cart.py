@@ -2,13 +2,13 @@ from datetime import datetime, timedelta
 
 from flask import Blueprint, render_template, redirect, url_for, flash, request, jsonify, session
 from flask_login import login_required, current_user
-from app.models import Product, ProductVariant, Order, OrderItem, Address, db
+from app.models import Product, ProductVariant, Order, OrderItem, Address, DiscountCode, db
 from app import limiter
 
 cart_bp = Blueprint('cart', __name__)
 
 DELIVERY_FEE = 80
- 
+
 
 def get_cart():
     return session.get('cart', {})
@@ -19,9 +19,7 @@ def save_cart(cart):
     session.modified = True
 
 
-@cart_bp.route('/')
-def view_cart():
-    cart = get_cart()
+def compute_subtotal(cart):
     items = []
     subtotal = 0
     for key, item in cart.items():
@@ -36,8 +34,45 @@ def view_cart():
                 'quantity': item['quantity'],
                 'total': total
             })
+    return items, subtotal
+
+
+def get_applied_discount(subtotal):
+    """Returns (discount_obj_or_None, discount_amount, error_message_or_None).
+    Clears an invalid/stale code from the session automatically."""
+    code = session.get('discount_code')
+    if not code:
+        return None, 0, None
+
+    discount = DiscountCode.query.filter_by(code=code).first()
+    if not discount:
+        session.pop('discount_code', None)
+        session.modified = True
+        return None, 0, None
+
+    valid, error = discount.is_valid(subtotal)
+    if not valid:
+        session.pop('discount_code', None)
+        session.modified = True
+        return None, 0, error
+
+    return discount, discount.calculate_discount(subtotal), None
+
+
+@cart_bp.route('/')
+def view_cart():
+    cart = get_cart()
+    items, subtotal = compute_subtotal(cart)
+    discount, discount_amount, discount_error = get_applied_discount(subtotal)
+    if discount_error:
+        flash(discount_error, 'danger')
+
     shipping = 0 if subtotal >= 1500 else DELIVERY_FEE
-    return render_template('main/cart.html', items=items, subtotal=subtotal, shipping=shipping, total=subtotal + shipping)
+    total = max(subtotal + shipping - discount_amount, 0)
+
+    return render_template('main/cart.html',
+                           items=items, subtotal=subtotal, shipping=shipping,
+                           total=total, discount=discount, discount_amount=discount_amount)
 
 
 @cart_bp.route('/add', methods=['POST'])
@@ -125,6 +160,40 @@ def cart_count():
     return jsonify({'count': count})
 
 
+@cart_bp.route('/apply-discount', methods=['POST'])
+@limiter.limit("15 per minute")       # prevents brute-forcing codes
+def apply_discount():
+    code = request.form.get('code', '').strip().upper()
+    if not code:
+        flash('Please enter a discount code.', 'danger')
+        return redirect(url_for('cart.view_cart'))
+
+    cart = get_cart()
+    _, subtotal = compute_subtotal(cart)
+
+    discount = DiscountCode.query.filter_by(code=code).first()
+    if not discount:
+        flash('Invalid discount code.', 'danger')
+        return redirect(url_for('cart.view_cart'))
+
+    valid, error = discount.is_valid(subtotal)
+    if not valid:
+        flash(error, 'danger')
+        return redirect(url_for('cart.view_cart'))
+
+    session['discount_code'] = discount.code
+    session.modified = True
+    flash(f'Code "{discount.code}" applied.', 'success')
+    return redirect(url_for('cart.view_cart'))
+
+
+@cart_bp.route('/remove-discount', methods=['POST'])
+def remove_discount():
+    session.pop('discount_code', None)
+    session.modified = True
+    return redirect(url_for('cart.view_cart'))
+
+
 @cart_bp.route('/checkout', methods=['GET', 'POST'])
 @login_required
 @limiter.limit("10 per minute")       # prevents checkout abuse
@@ -134,27 +203,19 @@ def checkout():
         flash('Your cart is empty.', 'info')
         return redirect(url_for('cart.view_cart'))
 
-    items = []
-    subtotal = 0
-    for key, item in cart.items():
-        product = Product.query.get(item['product_id'])
-        if product:
-            total = product.price * item['quantity']
-            subtotal += total
-            items.append({
-                'key': key,
-                'product': product,
-                'size': item['size'],
-                'quantity': item['quantity'],
-                'total': total
-            })
-    if subtotal >= 1500:
-        shipping = 0
-    else:
-        shipping = DELIVERY_FEE
-    grand_total = subtotal + shipping
+    items, subtotal = compute_subtotal(cart)
+    shipping = 0 if subtotal >= 1500 else DELIVERY_FEE
 
     if request.method == 'POST':
+        # Re-validate the discount right before placing the order, so a code
+        # that expired / hit its cap between page-load and submit is caught.
+        discount, discount_amount, discount_error = get_applied_discount(subtotal)
+        if discount_error:
+            flash(discount_error, 'danger')
+            return redirect(url_for('cart.checkout'))
+
+        grand_total = max(subtotal + shipping - discount_amount, 0)
+
         payment_method = request.form.get('payment_method', 'cod')
 
         # Whitelist payment methods
@@ -200,6 +261,8 @@ def checkout():
             payment_method=payment_method,
             subtotal=subtotal,
             shipping_cost=shipping,
+            discount_code=discount.code if discount else None,
+            discount_amount=discount_amount,
             total=grand_total,
             notes=notes
         )
@@ -232,17 +295,28 @@ def checkout():
             )
             db.session.add(order_item)
 
+        if discount:
+            discount.uses_count += 1
+
         db.session.commit()
         session['cart'] = {}
+        session.pop('discount_code', None)
         session.modified = True
 
         flash(f'Order {order.order_number} placed successfully!', 'success')
         return redirect(url_for('account.order_detail', order_id=order.id))
+
+    discount, discount_amount, discount_error = get_applied_discount(subtotal)
+    if discount_error:
+        flash(discount_error, 'danger')
+    grand_total = max(subtotal + shipping - discount_amount, 0)
 
     addresses = current_user.addresses if current_user.is_authenticated else []
     return render_template('main/checkout.html',
                            items=items,
                            subtotal=subtotal,
                            shipping=shipping,
+                           discount=discount,
+                           discount_amount=discount_amount,
                            grand_total=grand_total,
                            addresses=addresses)

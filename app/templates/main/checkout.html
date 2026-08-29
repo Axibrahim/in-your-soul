@@ -136,7 +136,7 @@
           </div>
 
         </div><!-- end left -->
-
+        
         <!-- ORDER SUMMARY -->
         <div class="cart-summary checkout-summary">
           <h3>YOUR ORDER</h3>
@@ -147,6 +147,16 @@
           </div>
           {% endfor %}
           <div class="summary-row" style="border-top:1px solid var(--border);margin-top:0.5rem;padding-top:1rem;">
+            <span>Subtotal</span>
+            <span>{{ "%.0f"|format(subtotal) }} EGP</span>
+          </div>
+          {% if discount %}
+          <div class="summary-row" style="color:var(--accent);">
+            <span>Discount ({{ discount.code }})</span>
+            <span>−{{ "%.0f"|format(discount_amount) }} EGP</span>
+          </div>
+          {% endif %}
+          <div class="summary-row">
             <span>Shipping</span>
             <span>{{ "%.0f"|format(shipping) }} EGP</span>
           </div>

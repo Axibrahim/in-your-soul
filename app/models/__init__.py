@@ -96,6 +96,39 @@ class ProductVariant(db.Model):
         return f'<Variant {self.size}: {self.stock}>'
 
 
+class DiscountCode(db.Model):
+    __tablename__ = 'discount_codes'
+    id = db.Column(db.Integer, primary_key=True)
+    code = db.Column(db.String(30), unique=True, nullable=False)
+    discount_type = db.Column(db.String(10), nullable=False, default='percent')  # 'percent' or 'fixed'
+    value = db.Column(db.Float, nullable=False)  # percent (0-100) or fixed EGP amount
+    min_subtotal = db.Column(db.Float, default=0)
+    max_uses = db.Column(db.Integer, nullable=True)  # None = unlimited
+    uses_count = db.Column(db.Integer, default=0)
+    is_active = db.Column(db.Boolean, default=True)
+    expires_at = db.Column(db.DateTime, nullable=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    def is_valid(self, subtotal):
+        if not self.is_active:
+            return False, "This code is no longer active."
+        if self.expires_at and datetime.utcnow() > self.expires_at:
+            return False, "This code has expired."
+        if self.max_uses is not None and self.uses_count >= self.max_uses:
+            return False, "This code has reached its usage limit."
+        if subtotal < self.min_subtotal:
+            return False, f"Minimum order of {self.min_subtotal:.0f} EGP required for this code."
+        return True, None
+
+    def calculate_discount(self, subtotal):
+        if self.discount_type == 'percent':
+            return round(subtotal * (self.value / 100), 2)
+        return min(self.value, subtotal)  # fixed amount, never exceeds subtotal
+
+    def __repr__(self):
+        return f'<DiscountCode {self.code}>'
+
+
 class Order(db.Model):
     __tablename__ = 'orders'
     id = db.Column(db.Integer, primary_key=True)
@@ -108,6 +141,8 @@ class Order(db.Model):
     subtotal = db.Column(db.Float, default=0)
     shipping_cost = db.Column(db.Float, default=0)
     total = db.Column(db.Float, default=0)
+    discount_code = db.Column(db.String(30), nullable=True)
+    discount_amount = db.Column(db.Float, default=0)
     shipping_address = db.Column(db.Text)  # JSON string of address
     notes = db.Column(db.Text)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)

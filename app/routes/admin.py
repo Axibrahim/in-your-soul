@@ -1,11 +1,12 @@
 from flask import Blueprint, render_template, redirect, url_for, flash, request, jsonify, current_app
 from flask_login import login_required, current_user
-from app.models import OrderItem, Product, ProductVariant, Category, Order, User, db
+from app.models import OrderItem, Product, ProductVariant, Category, Order, User, DiscountCode, db
 from functools import wraps
 import os, re, time, secrets
 from werkzeug.utils import secure_filename
 from PIL import Image
 from supabase import create_client, Client
+from datetime import datetime, timedelta
 
 admin_bp = Blueprint('admin', __name__)
 
@@ -395,3 +396,75 @@ def toggle_admin(user_id):
         user.is_admin = not user.is_admin
         db.session.commit()
     return jsonify({'success': True, 'is_admin': user.is_admin})
+
+
+@admin_bp.route('/discounts')
+@login_required
+@admin_required
+def discounts():
+    codes = DiscountCode.query.order_by(DiscountCode.created_at.desc()).all()
+    return render_template('admin/discounts.html', codes=codes)
+
+
+@admin_bp.route('/discounts/add', methods=['POST'])
+@login_required
+@admin_required
+def add_discount():
+    code = request.form.get('code', '').strip().upper()
+    discount_type = request.form.get('discount_type', 'percent')
+    value = request.form.get('value', type=float)
+    min_subtotal = request.form.get('min_subtotal', 0, type=float)
+    max_uses = request.form.get('max_uses', type=int)
+    expires_days = request.form.get('expires_days', type=int)
+
+    if not code or not value or discount_type not in ('percent', 'fixed'):
+        flash('Code and value are required.', 'danger')
+        return redirect(url_for('admin.discounts'))
+
+    if DiscountCode.query.filter_by(code=code).first():
+        flash('A discount code with that name already exists.', 'danger')
+        return redirect(url_for('admin.discounts'))
+
+    if discount_type == 'percent' and (value <= 0 or value > 100):
+        flash('Percent discounts must be between 1 and 100.', 'danger')
+        return redirect(url_for('admin.discounts'))
+
+    if value <= 0:
+        flash('Value must be greater than 0.', 'danger')
+        return redirect(url_for('admin.discounts'))
+
+    expires_at = datetime.utcnow() + timedelta(days=expires_days) if expires_days else None
+
+    dc = DiscountCode(
+        code=code,
+        discount_type=discount_type,
+        value=value,
+        min_subtotal=min_subtotal or 0,
+        max_uses=max_uses,
+        expires_at=expires_at
+    )
+    db.session.add(dc)
+    db.session.commit()
+    flash(f'Discount code "{code}" created.', 'success')
+    return redirect(url_for('admin.discounts'))
+
+
+@admin_bp.route('/discounts/<int:discount_id>/toggle', methods=['POST'])
+@login_required
+@admin_required
+def toggle_discount(discount_id):
+    dc = DiscountCode.query.get_or_404(discount_id)
+    dc.is_active = not dc.is_active
+    db.session.commit()
+    return jsonify({'success': True, 'is_active': dc.is_active})
+
+
+@admin_bp.route('/discounts/<int:discount_id>/delete', methods=['POST'])
+@login_required
+@admin_required
+def delete_discount(discount_id):
+    dc = DiscountCode.query.get_or_404(discount_id)
+    db.session.delete(dc)
+    db.session.commit()
+    flash('Discount code deleted.', 'success')
+    return redirect(url_for('admin.discounts'))

@@ -1,0 +1,100 @@
+{% extends 'admin/base.html' %}
+{% block title %}Discount Codes{% endblock %}
+{% block page_title %}DISCOUNT CODES{% endblock %}
+
+{% block content %}
+<div style="display:grid;grid-template-columns:1fr 360px;gap:2rem;align-items:start;">
+
+  <!-- LIST -->
+  <div>
+    <h2 style="font-size:1.25rem;margin-bottom:1.5rem;">All Codes</h2>
+    {% if codes %}
+    <div style="background:var(--panel);border:1px solid var(--border);overflow-x:auto;">
+      <table>
+        <thead>
+          <tr>
+            <th>CODE</th><th>DISCOUNT</th><th>MIN ORDER</th><th>USES</th><th>EXPIRES</th><th>STATUS</th><th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for c in codes %}
+          <tr>
+            <td style="font-family:var(--font-display);font-size:0.85rem;color:var(--accent);">{{ c.code }}</td>
+            <td style="font-size:0.82rem;">
+              {% if c.discount_type == 'percent' %}{{ c.value|int }}% OFF{% else %}{{ "%.0f"|format(c.value) }} EGP OFF{% endif %}
+            </td>
+            <td style="font-size:0.78rem;color:var(--text-dim);">{{ "%.0f"|format(c.min_subtotal) }} EGP</td>
+            <td style="font-size:0.78rem;color:var(--text-dim);">{{ c.uses_count }}{% if c.max_uses %} / {{ c.max_uses }}{% endif %}</td>
+            <td style="font-size:0.78rem;color:var(--text-dim);">{{ c.expires_at.strftime('%Y-%m-%d') if c.expires_at else 'Never' }}</td>
+            <td>
+              {% if c.is_active %}
+              <span class="badge badge--success">ACTIVE</span>
+              {% else %}
+              <span class="badge badge--danger">OFF</span>
+              {% endif %}
+            </td>
+            <td style="white-space:nowrap;">
+              <form method="POST" action="{{ url_for('admin.toggle_discount', discount_id=c.id) }}" style="display:inline;" onsubmit="event.preventDefault(); fetch(this.action,{method:'POST',headers:{'X-CSRFToken':'{{ csrf_token() }}'}}).then(()=>location.reload());">
+                <button type="submit" class="btn btn--ghost btn--sm"><span>{{ 'DISABLE' if c.is_active else 'ENABLE' }}</span></button>
+              </form>
+              <form method="POST" action="{{ url_for('admin.delete_discount', discount_id=c.id) }}" style="display:inline;" onsubmit="return confirm('Delete this discount code?')">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                <button type="submit" class="btn btn--danger btn--sm"><span>DELETE</span></button>
+              </form>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="empty-state" style="padding:3rem;border:1px solid var(--border);background:var(--panel);">
+      <h3>NO DISCOUNT CODES YET</h3>
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- ADD -->
+  <div style="background:var(--panel);border:1px solid var(--border);padding:2rem;position:sticky;top:4.5rem;">
+    <div style="font-family:var(--font-display);font-size:0.65rem;letter-spacing:0.2em;color:var(--text-dim);margin-bottom:1.5rem;">CREATE CODE</div>
+    <form method="POST" action="{{ url_for('admin.add_discount') }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+
+      <div class="field">
+        <label>CODE</label>
+        <input type="text" name="code" placeholder="WELCOME10" required style="text-transform:uppercase;"/>
+      </div>
+
+      <div class="field">
+        <label>TYPE</label>
+        <select name="discount_type" required>
+          <option value="percent">Percentage (%)</option>
+          <option value="fixed">Fixed amount (EGP)</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label>VALUE</label>
+        <input type="number" step="0.01" name="value" placeholder="10" required/>
+      </div>
+
+      <div class="field">
+        <label>MINIMUM ORDER (EGP) <span style="color:var(--muted);">optional</span></label>
+        <input type="number" step="0.01" name="min_subtotal" placeholder="0"/>
+      </div>
+
+      <div class="field">
+        <label>MAX USES <span style="color:var(--muted);">optional, blank = unlimited</span></label>
+        <input type="number" name="max_uses" placeholder="e.g. 100"/>
+      </div>
+
+      <div class="field">
+        <label>EXPIRES IN (DAYS) <span style="color:var(--muted);">optional, blank = never</span></label>
+        <input type="number" name="expires_days" placeholder="e.g. 30"/>
+      </div>
+
+      <button type="submit" class="btn btn--primary btn--full"><span>CREATE CODE</span></button>
+    </form>
+  </div>
+</div>
+{% endblock %}
