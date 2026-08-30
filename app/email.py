@@ -153,3 +153,28 @@ def send_reset_email(to_email: str, token: str) -> bool:
             flush=True
         )
         return False
+
+
+def send_order_status_email(to_email: str, order_id: str, first_name: str = "") -> bool:
+    base_url = os.environ.get('BASE_URL', 'https://inyoursoul.store').rstrip('/')
+    
+    try:
+        path = url_for('orders.track_order', order_id=order_id)
+    except Exception:
+        path = f"/track-order/{order_id}"
+
+    full_link = f"{base_url}{path}"
+    
+    print(f"[EMAIL DEBUG] Order Tracking URL generated: {full_link}", file=sys.stderr, flush=True)
+
+    variables = {
+        "order_tracking_url": full_link,
+        "order_id": order_id,
+        "first_name": first_name or "Friend"
+    }
+
+    return _resend_send_template(
+        to_email=to_email,
+        template_id='39d43d95-5733-456e-9c11-a81dd81e5eaa',
+        variables=variables
+    )
