@@ -155,7 +155,13 @@ def send_reset_email(to_email: str, token: str) -> bool:
         return False
 
 
-def send_order_status_email(to_email: str, order_id: str, first_name: str = "") -> bool:
+def send_order_status_email(
+    to_email: str, 
+    order_id: str, 
+    order_status: str = "Processing", 
+    estimated_delivery: str = "3-5 Business Days", 
+    first_name: str = ""
+) -> bool:
     base_url = os.environ.get('BASE_URL', 'https://inyoursoul.store').rstrip('/')
     
     try:
@@ -163,18 +169,37 @@ def send_order_status_email(to_email: str, order_id: str, first_name: str = "") 
     except Exception:
         path = f"/track-order/{order_id}"
 
-    full_link = f"{base_url}{path}"
+    # Strip https:// because the Resend template appends it in the href
+    full_link = f"{base_url}{path}".replace("https://", "").replace("http://", "")
     
-    print(f"[EMAIL DEBUG] Order Tracking URL generated: {full_link}", file=sys.stderr, flush=True)
+    resend.api_key = os.environ.get('RESEND_API_KEY')
+    from_email = os.environ.get('RESEND_FROM_EMAIL')
+
+    if not resend.api_key or not from_email:
+        print("[RESEND ERROR] Missing API Key or From Email.", file=sys.stderr, flush=True)
+        return False
 
     variables = {
         "order_tracking_url": full_link,
-        "order_id": order_id,
+        "order_id": str(order_id),
+        "order_status": order_status,
+        "estimated_delivery": estimated_delivery,
         "first_name": first_name or "Friend"
     }
 
-    return _resend_send_template(
-        to_email=to_email,
-        template_id='39d43d95-5733-456e-9c11-a81dd81e5eaa',
-        variables=variables
-    )
+    try:
+        response = resend.Emails.send({
+            "from": from_email,
+            "to": [to_email],
+            "subject": f"Update on your order #{order_id}",
+            "template": {
+                "id": "39d43d95-5733-456e-9c11-a81dd81e5eaa",
+                "variables": variables,
+            },
+        })
+        print(f"[RESEND SUCCESS] Order status email sent: {response}", file=sys.stderr, flush=True)
+        return True
+
+    except Exception as e:
+        print(f"[RESEND ERROR] Failed to send order status email: {e}", file=sys.stderr, flush=True)
+        return False
