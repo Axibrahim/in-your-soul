@@ -180,13 +180,12 @@ def send_order_status_email(
         return False
 
     variables = {
-        "order_tracking_url": full_link,
-        "order_id": str(order_id),
+        "order_tracking_url": f"{base_url}{path}",  # Output: https://inyoursoul.store/track-order/123
+        "order_id": order_id,                       # Send as number or string matching template type
         "order_status": order_status,
         "estimated_delivery": estimated_delivery,
         "first_name": first_name or "Friend"
     }
-
     try:
         response = resend.Emails.send({
             "from": from_email,
