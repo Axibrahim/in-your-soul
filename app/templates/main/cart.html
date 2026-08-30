@@ -74,22 +74,6 @@
         <span class="summary-total">{{ "%.0f"|format(total) }} EGP</span>
       </div>
 
-      <!-- PROMO CODE -->
-      <div style="margin-top:1.25rem;">
-        {% if discount %}
-        <form method="POST" action="{{ url_for('cart.remove_discount') }}" style="display:flex;align-items:center;justify-content:space-between;gap:0.75rem;border:1px solid var(--accent);background:var(--accent-glow);padding:0.75rem;">
-          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-          <span style="font-family:var(--font-display);font-size:0.72rem;letter-spacing:0.08em;color:var(--accent);">{{ discount.code }} APPLIED</span>
-          <button type="submit" class="btn btn--ghost btn--sm"><span>REMOVE</span></button>
-        </form>
-        {% else %}
-        <form method="POST" action="{{ url_for('cart.apply_discount') }}" style="display:flex;gap:0.5rem;">
-          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-          <input type="text" name="code" placeholder="PROMO CODE" style="flex:1;text-transform:uppercase;"/>
-          <button type="submit" class="btn btn--ghost btn--sm"><span>APPLY</span></button>
-        </form>
-        {% endif %}
-      </div>
 
       <div style="margin-top:1.5rem;display:flex;flex-direction:column;gap:0.75rem;">
         <a href="{{ url_for('cart.checkout') }}" class="btn btn--primary btn--full"><span>CHECKOUT →</span></a>
