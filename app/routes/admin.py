@@ -463,7 +463,8 @@ def toggle_discount(discount_id):
     dc = DiscountCode.query.get_or_404(discount_id)
     dc.is_active = not dc.is_active
     db.session.commit()
-    return jsonify({'success': True, 'is_active': dc.is_active})
+    flash(f'"{dc.code}" is now {"active" if dc.is_active else "disabled"}.', 'success')
+    return redirect(url_for('admin.discounts'))
 
 
 @admin_bp.route('/discounts/<int:discount_id>/delete', methods=['POST'])

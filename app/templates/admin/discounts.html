@@ -34,13 +34,14 @@
               {% endif %}
             </td>
             <td style="white-space:nowrap;">
-              <form method="POST" action="{{ url_for('admin.toggle_discount', discount_id=c.id) }}" style="display:inline;" onsubmit="event.preventDefault(); fetch(this.action,{method:'POST',headers:{'X-CSRFToken':'{{ csrf_token() }}'}}).then(()=>location.reload());">
-                <button type="submit" class="btn btn--ghost btn--sm"><span>{{ 'DISABLE' if c.is_active else 'ENABLE' }}</span></button>
-              </form>
-              <form method="POST" action="{{ url_for('admin.delete_discount', discount_id=c.id) }}" style="display:inline;" onsubmit="return confirm('Delete this discount code?')">
-                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-                <button type="submit" class="btn btn--danger btn--sm"><span>DELETE</span></button>
-              </form>
+            <form method="POST" action="{{ url_for('admin.toggle_discount', discount_id=c.id) }}" style="display:inline;">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+              <button type="submit" class="btn btn--ghost btn--sm"><span>{{ 'DISABLE' if c.is_active else 'ENABLE' }}</span></button>
+            </form>
+            <form method="POST" action="{{ url_for('admin.delete_discount', discount_id=c.id) }}" style="display:inline;" data-confirm="Delete this discount code?">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+              <button type="submit" class="btn btn--danger btn--sm"><span>DELETE</span></button>
+            </form>
             </td>
           </tr>
           {% endfor %}
