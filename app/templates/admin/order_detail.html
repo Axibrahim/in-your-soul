@@ -113,9 +113,13 @@
     <!-- ORDER SUMMARY -->
     <div style="background:var(--panel);border:1px solid var(--border);padding:1.75rem;">
       <div style="font-family:var(--font-display);font-size:0.65rem;letter-spacing:0.2em;color:var(--text-dim);margin-bottom:1.25rem;">FINANCIALS</div>
-      <div class="summary-row"><span>Discount Code</span><span>{{ "%.0f"|format(order.discount_code) }} EGP</span></div>
-      <div class="summary-row"><span>Discount Amount</span><span>{{ "%.0f"|format(order.discount_amount) }} EGP</span></div>
       <div class="summary-row"><span>Subtotal</span><span>{{ "%.0f"|format(order.subtotal) }} EGP</span></div>
+      {% if order.discount_code %}
+      <div class="summary-row" style="color:var(--accent);">
+        <span>Discount ({{ order.discount_code }})</span>
+        <span>−{{ "%.0f"|format(order.discount_amount) }} EGP</span>
+      </div>
+      {% endif %}
       <div class="summary-row"><span>Shipping</span><span>{{ "%.0f"|format(order.shipping_cost) }} EGP</span></div>
       <div class="summary-row" style="border-top:1px solid var(--border);padding-top:1rem;margin-top:0.5rem;">
         <span style="font-family:var(--font-display);font-size:0.8rem;letter-spacing:0.1em;">TOTAL</span>

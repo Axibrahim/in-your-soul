@@ -3,6 +3,7 @@ from flask_login import login_required, current_user
 from app.models import OrderItem, Product, ProductVariant, Category, Order, User, DiscountCode, db
 from functools import wraps
 import os, re, time, secrets
+from app.email import send_order_status_email
 from werkzeug.utils import secure_filename
 from PIL import Image
 from supabase import create_client, Client
@@ -337,11 +338,17 @@ def update_order_status(order_id):
     new_status = request.form.get('status')
     valid = ['pending', 'confirmed', 'shipped', 'delivered', 'cancelled']
     if new_status in valid:
+        old_status = order.status
         order.status = new_status
         db.session.commit()
         flash(f'Order status updated to {new_status}.', 'success')
-    return redirect(url_for('admin.order_detail', order_id=order_id))
 
+        # Only email on a genuine change into a customer-meaningful status
+        if new_status != old_status and new_status in ('shipped', 'delivered', 'cancelled'):
+            customer = User.query.get(order.user_id)
+            if customer and customer.email:
+                send_order_status_email(customer.email, order.order_number, new_status)
+    return redirect(url_for('admin.order_detail', order_id=order_id))
 
 @admin_bp.route('/categories')
 @login_required

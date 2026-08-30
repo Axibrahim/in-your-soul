@@ -7,198 +7,194 @@
     <div class="section-eyebrow" style="margin-bottom:1rem;">FINAL STEP</div>
     <h1 style="font-size:clamp(1.5rem,4vw,2.5rem);margin-bottom:2.5rem;">Checkout</h1>
 
-    <form method="POST" action="{{ url_for('cart.checkout') }}">
-      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+    <div class="checkout-grid">
 
-      <div class="checkout-grid">
+      <!-- LEFT COLUMN -->
+      <form method="POST" action="{{ url_for('cart.checkout') }}" class="checkout-left">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
 
-        <!-- LEFT COLUMN -->
-        <div class="checkout-left">
+        <!-- SHIPPING ADDRESS -->
+        <div class="checkout-card">
+          <h3 class="checkout-card-title"><span class="checkout-step-num">1</span> SHIPPING ADDRESS</h3>
 
-          <!-- SHIPPING ADDRESS -->
-          <div class="checkout-card">
-            <h3 class="checkout-card-title">SHIPPING ADDRESS</h3>
-
-            {% if addresses %}
-            <div class="address-type-toggle">
-              <label class="toggle-label">
-                <input type="radio" name="address_type" value="saved" id="use-saved-address" checked/>
-                USE SAVED ADDRESS
-              </label>
-              <label class="toggle-label">
-                <input type="radio" name="address_type" value="new" id="use-new-address"/>
-                ENTER NEW ADDRESS
-              </label>
-            </div>
-
-            <div id="saved-address-section">
-              {% for addr in addresses %}
-              <label class="addr-option">
-                <input type="radio" name="address_id" value="{{ addr.id }}" {% if addr.is_default %}checked{% endif %}/>
-                <div class="addr-option-text">
-                  <div class="addr-label">{{ addr.label.upper() }}</div>
-                  <div class="addr-detail">{{ addr.street }}, {{ addr.district }}, {{ addr.governorate }}</div>
-                </div>
-              </label>
-              {% endfor %}
-            </div>
-
-            <div id="new-address-section" style="display:none;">
-            {% endif %}
-<div class="field-row">
-  <div class="field">
-    <label>STREET ADDRESS</label>
-    <input type="text" name="street" placeholder="123 Street Name"/>
-  </div>
-  <div class="field">
-    <label>DISTRICT</label>
-    <input type="text" name="district" placeholder="e.g. GIZA"/>
-  </div>
-  </div>
-    <div class="field">
-      <label>GOVERNORATE</label>
-      <input type="text" name="governorate" placeholder="Governorate"/>
-    </div>
-
-            {% if addresses %}
-            </div>
-            {% endif %}
+          {% if addresses %}
+          <div class="address-type-toggle">
+            <label class="toggle-label">
+              <input type="radio" name="address_type" value="saved" id="use-saved-address" checked/>
+              USE SAVED ADDRESS
+            </label>
+            <label class="toggle-label">
+              <input type="radio" name="address_type" value="new" id="use-new-address"/>
+              ENTER NEW ADDRESS
+            </label>
           </div>
 
-          <!-- PAYMENT METHOD -->
-          <div class="checkout-card">
-            <h3 class="checkout-card-title">PAYMENT METHOD</h3>
-            <div class="payment-options">
+          <div id="saved-address-section">
+            {% for addr in addresses %}
+            <label class="addr-option">
+              <input type="radio" name="address_id" value="{{ addr.id }}" {% if addr.is_default %}checked{% endif %}/>
+              <div class="addr-option-text">
+                <div class="addr-label">{{ (addr.label or 'Home').upper() }}</div>
+                <div class="addr-detail">{{ addr.street }}, {{ addr.district }}, {{ addr.governorate }}</div>
+              </div>
+            </label>
+            {% endfor %}
+          </div>
 
-              <!-- COD -->
-              <label class="payment-option">
-                <input type="radio" name="payment_method" value="cod" checked/>
-                <div class="payment-option-body">
-                  <div class="payment-option-name">CASH ON DELIVERY</div>
-                  <div class="payment-option-desc">Pay when your order arrives at your door.</div>
+          <div id="new-address-section" style="display:none;">
+          {% endif %}
+          <div class="field-row">
+            <div class="field">
+              <label>STREET ADDRESS</label>
+              <input type="text" name="street" placeholder="123 Street Name"/>
+            </div>
+            <div class="field">
+              <label>DISTRICT</label>
+              <input type="text" name="district" placeholder="e.g. GIZA"/>
+            </div>
+          </div>
+          <div class="field">
+            <label>GOVERNORATE</label>
+            <input type="text" name="governorate" placeholder="Governorate"/>
+          </div>
+          {% if addresses %}
+          </div>
+          {% endif %}
+        </div>
+
+        <!-- PAYMENT METHOD -->
+        <div class="checkout-card">
+          <h3 class="checkout-card-title"><span class="checkout-step-num">2</span> PAYMENT METHOD</h3>
+          <div class="payment-options">
+
+            <label class="payment-option">
+              <input type="radio" name="payment_method" value="cod" checked/>
+              <div class="payment-option-body">
+                <div class="payment-option-name">CASH ON DELIVERY</div>
+                <div class="payment-option-desc">Pay when your order arrives at your door.</div>
+              </div>
+              <span class="payment-option-icon">💵</span>
+            </label>
+
+            <label class="payment-option">
+              <input type="radio" name="payment_method" value="vodafone_cash"/>
+              <div class="payment-option-body">
+                <div class="payment-option-name">VODAFONE CASH</div>
+                <div class="payment-option-desc">
+                  Transfer to: <strong style="color:var(--text);">01557793954</strong><br/>
+                  Order confirmed after payment is received. 2-hour window to complete.
                 </div>
-                <span class="payment-option-icon">💵</span>
-              </label>
+              </div>
+              <span class="payment-option-icon">📱</span>
+            </label>
 
-              <!-- VODAFONE CASH -->
-              <label class="payment-option">
-                <input type="radio" name="payment_method" value="vodafone_cash"/>
-                <div class="payment-option-body">
-                  <div class="payment-option-name">VODAFONE CASH</div>
-                  <div class="payment-option-desc">
-                    Transfer to: <strong style="color:var(--text);">01557793954</strong><br/>
-                    Order confirmed after payment is received. 2-hour window to complete.
-                  </div>
+            <label class="payment-option">
+              <input type="radio" name="payment_method" value="instapay"/>
+              <div class="payment-option-body">
+                <div class="payment-option-name">INSTAPAY</div>
+                <div class="payment-option-desc">
+                  Transfer via InstaPay. Order confirmed after payment. 2-hour window to complete.
                 </div>
-                <span class="payment-option-icon">📱</span>
-              </label>
-
-              <!-- INSTAPAY -->
-              <label class="payment-option">
-                <input type="radio" name="payment_method" value="instapay"/>
-                <div class="payment-option-body">
-                  <div class="payment-option-name">INSTAPAY</div>
-                  <div class="payment-option-desc">
-                    Transfer via InstaPay. Order confirmed after payment. 2-hour window to complete.
-                  </div>
-                  <!-- QR + details shown only when instapay selected -->
-                  <div class="instapay-details" id="instapay-details">
-                    <div class="instapay-inner">
-                      <img
-                        src="{{ url_for('static', filename='images/instapay_qr.jpg') }}"
-                        alt="InstaPay QR Code"
-                        class="instapay-qr"
-                        onerror="this.style.display='none'"
-                      />
-                      <div class="instapay-info">
-                        <div class="instapay-id-label">INSTAPAY ID</div>
-                        <div class="instapay-id">amro.ibrahim232</div>
-                        <p class="instapay-note">
-                          Scan the QR or use the ID above to send payment,
-                          then our team will verify and confirm your order.
-                        </p>
-                      </div>
+                <div class="instapay-details" id="instapay-details">
+                  <div class="instapay-inner">
+                    <img
+                      src="{{ url_for('static', filename='images/instapay_qr.jpg') }}"
+                      alt="InstaPay QR Code"
+                      class="instapay-qr"
+                      onerror="this.style.display='none'"
+                    />
+                    <div class="instapay-info">
+                      <div class="instapay-id-label">INSTAPAY ID</div>
+                      <div class="instapay-id">amro.ibrahim232</div>
+                      <p class="instapay-note">
+                        Scan the QR or use the ID above to send payment,
+                        then our team will verify and confirm your order.
+                      </p>
                     </div>
                   </div>
                 </div>
-                <span class="payment-option-icon">⚡</span>
-              </label>
+              </div>
+              <span class="payment-option-icon">⚡</span>
+            </label>
 
-            </div>
-          </div>
-
-          <!-- ORDER NOTES -->
-          <div class="checkout-card">
-            <h3 class="checkout-card-title">ORDER NOTES <span style="font-size:0.6rem;color:var(--muted);letter-spacing:0.1em;">(OPTIONAL)</span></h3>
-            <div class="field" style="margin:0;">
-              <textarea name="notes" placeholder="Any special instructions?"></textarea>
-            </div>
-          </div>
-
-        </div><!-- end left -->
-        
-        <!-- ORDER SUMMARY -->
-        <div class="cart-summary checkout-summary">
-          <h3>YOUR ORDER</h3>
-          {% for item in items %}
-          <div class="summary-row">
-            <span style="font-size:0.8rem;">{{ item.product.name }} ({{ item.size }}) ×{{ item.quantity }}</span>
-            <span>{{ "%.0f"|format(item.total) }} EGP</span>
-          </div>
-          {% endfor %}
-          <div class="summary-row" style="border-top:1px solid var(--border);margin-top:0.5rem;padding-top:1rem;">
-            <span>Subtotal</span>
-            <span>{{ "%.0f"|format(subtotal) }} EGP</span>
-          </div>
-          {% if discount %}
-          <div class="summary-row" style="color:var(--accent);">
-            <span>Discount ({{ discount.code }})</span>
-            <span>−{{ "%.0f"|format(discount_amount) }} EGP</span>
-          </div>
-          {% endif %}
-          <div class="summary-row">
-            <span>Shipping</span>
-            <span>{{ "%.0f"|format(shipping) }} EGP</span>
-          </div>
-          <div class="summary-row">
-            <span style="font-family:var(--font-display);font-size:0.8rem;letter-spacing:0.1em;">TOTAL</span>
-            <span class="summary-total">{{ "%.0f"|format(grand_total) }} EGP</span>
-          </div>
-
-                <!-- PROMO CODE -->
-      <div style="margin-top:1.25rem;">
-        {% if discount %}
-        <form method="POST" action="{{ url_for('cart.remove_discount') }}" style="display:flex;align-items:center;justify-content:space-between;gap:0.75rem;border:1px solid var(--accent);background:var(--accent-glow);padding:0.75rem;">
-          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-          <span style="font-family:var(--font-display);font-size:0.72rem;letter-spacing:0.08em;color:var(--accent);">{{ discount.code }} APPLIED</span>
-          <button type="submit" class="btn btn--ghost btn--sm"><span>REMOVE</span></button>
-        </form>
-        {% else %}
-        <form method="POST" action="{{ url_for('cart.apply_discount') }}" style="display:flex;gap:0.5rem;">
-          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-          <input type="text" name="code" placeholder="PROMO CODE" style="flex:1;text-transform:uppercase;"/>
-          <button type="submit" class="btn btn--ghost btn--sm"><span>APPLY</span></button>
-        </form>
-        {% endif %}
-      </div>
-          <button type="submit" class="btn btn--primary btn--full" style="margin-top:1.5rem;">
-            <span>PLACE ORDER →</span>
-          </button>
-          <a href="{{ url_for('cart.view_cart') }}" class="btn btn--ghost btn--full" style="margin-top:0.75rem;">
-            <span>← BACK TO CART</span>
-          </a>
-
-          <!-- REFUND POLICY -->
-          <div style="border-top:1px solid var(--border);margin-top:1.5rem;padding-top:1.25rem;">
-            <div style="font-family:var(--font-display);font-size:0.6rem;letter-spacing:0.15em;color:var(--accent);margin-bottom:0.5rem;">14-DAY REFUND POLICY</div>
-            <div style="font-size:0.78rem;color:var(--text-dim);line-height:1.7;">
-              Unworn items can be returned within 14 days of delivery. Contact us to initiate a return.
-            </div>
           </div>
         </div>
 
-      </div><!-- end grid -->
-    </form>
+        <!-- ORDER NOTES -->
+        <div class="checkout-card">
+          <h3 class="checkout-card-title"><span class="checkout-step-num">3</span> ORDER NOTES <span style="font-size:0.6rem;color:var(--muted);letter-spacing:0.1em;">(OPTIONAL)</span></h3>
+          <div class="field" style="margin:0;">
+            <textarea name="notes" placeholder="Any special instructions?"></textarea>
+          </div>
+        </div>
+
+        <button type="submit" class="btn btn--primary btn--full checkout-submit-mobile"><span>PLACE ORDER →</span></button>
+      </form><!-- end left / main form -->
+
+      <!-- ORDER SUMMARY -->
+      <div class="cart-summary checkout-summary">
+        <h3>YOUR ORDER</h3>
+        {% for item in items %}
+        <div class="summary-row">
+          <span style="font-size:0.8rem;">{{ item.product.name }} ({{ item.size }}) ×{{ item.quantity }}</span>
+          <span>{{ "%.0f"|format(item.total) }} EGP</span>
+        </div>
+        {% endfor %}
+        <div class="summary-row" style="border-top:1px solid var(--border);margin-top:0.5rem;padding-top:1rem;">
+          <span>Subtotal</span>
+          <span>{{ "%.0f"|format(subtotal) }} EGP</span>
+        </div>
+        {% if discount %}
+        <div class="summary-row" style="color:var(--accent);">
+          <span>Discount ({{ discount.code }})</span>
+          <span>−{{ "%.0f"|format(discount_amount) }} EGP</span>
+        </div>
+        {% endif %}
+        <div class="summary-row">
+          <span>Shipping</span>
+          <span>{{ "%.0f"|format(shipping) }} EGP</span>
+        </div>
+        <div class="summary-row">
+          <span style="font-family:var(--font-display);font-size:0.8rem;letter-spacing:0.1em;">TOTAL</span>
+          <span class="summary-total">{{ "%.0f"|format(grand_total) }} EGP</span>
+        </div>
+
+        <!-- PROMO CODE — separate form, sibling of the checkout form, not nested inside it -->
+        <div class="promo-box">
+          {% if discount %}
+          <form method="POST" action="{{ url_for('cart.remove_discount') }}" class="promo-applied">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+            <input type="hidden" name="next" value="checkout"/>
+            <span class="promo-applied-code">{{ discount.code }} APPLIED</span>
+            <button type="submit" class="btn btn--ghost btn--sm"><span>REMOVE</span></button>
+          </form>
+          {% else %}
+          <form method="POST" action="{{ url_for('cart.apply_discount') }}" class="promo-form">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+            <input type="hidden" name="next" value="checkout"/>
+            <input type="text" name="code" placeholder="PROMO CODE" class="promo-input"/>
+            <button type="submit" class="btn btn--ghost btn--sm"><span>APPLY</span></button>
+          </form>
+          {% endif %}
+        </div>
+
+        <button type="submit" form="" class="btn btn--primary btn--full checkout-submit-desktop" style="margin-top:1.5rem;" onclick="document.querySelector('.checkout-left').requestSubmit(); return false;">
+          <span>PLACE ORDER →</span>
+        </button>
+        <a href="{{ url_for('cart.view_cart') }}" class="btn btn--ghost btn--full" style="margin-top:0.75rem;">
+          <span>← BACK TO CART</span>
+        </a>
+
+        <!-- REFUND POLICY -->
+        <div style="border-top:1px solid var(--border);margin-top:1.5rem;padding-top:1.25rem;">
+          <div style="font-family:var(--font-display);font-size:0.6rem;letter-spacing:0.15em;color:var(--accent);margin-bottom:0.5rem;">14-DAY REFUND POLICY</div>
+          <div style="font-size:0.78rem;color:var(--text-dim);line-height:1.7;">
+            Unworn items can be returned within 14 days of delivery. Contact us to initiate a return.
+          </div>
+        </div>
+      </div>
+
+    </div><!-- end grid -->
   </div>
 </div>
 
@@ -214,26 +210,45 @@
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
-  min-width: 0; /* prevents overflow */
+  min-width: 0;
 }
 .checkout-summary {
   position: sticky;
   top: 5rem;
 }
+.checkout-submit-mobile { display: none; }
 
 /* ── CARDS ─────────────────────────────────────── */
 .checkout-card {
   background: var(--panel);
   border: 1px solid var(--border);
   padding: 1.75rem;
+  transition: border-color 0.2s ease;
+}
+.checkout-card:hover {
+  border-color: var(--border-active);
 }
 .checkout-card-title {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
   font-size: 0.68rem;
   letter-spacing: 0.18em;
   color: var(--text-dim);
   margin-bottom: 1.25rem;
   font-family: var(--font-display);
   font-weight: 400;
+}
+.checkout-step-num {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border: 1px solid var(--accent);
+  color: var(--accent);
+  font-size: 0.65rem;
+  flex-shrink: 0;
 }
 
 /* ── ADDRESS TOGGLE ────────────────────────────── */
@@ -294,6 +309,7 @@
 .payment-option:has(input:checked) {
   border-color: var(--accent);
   background: var(--accent-glow);
+  box-shadow: 0 0 0 1px var(--accent-glow);
 }
 .payment-option-body { flex: 1; min-width: 0; }
 .payment-option-name {
@@ -357,15 +373,60 @@
   max-width: none;
 }
 
+/* ── PROMO BOX (now theme-matched, no longer bare browser input) ─────── */
+.promo-box { margin-top: 1.25rem; }
+.promo-form {
+  display: flex;
+  gap: 0.5rem;
+}
+.promo-input {
+  flex: 1;
+  min-width: 0;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  color: var(--text);
+  font-family: var(--font-display);
+  font-size: 0.8rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 0.7rem 0.85rem;
+  border-radius: var(--radius);
+  outline: none;
+  transition: var(--transition);
+}
+.promo-input::placeholder {
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+.promo-input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--accent-glow);
+}
+.promo-applied {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  border: 1px solid var(--accent);
+  background: var(--accent-glow);
+  padding: 0.75rem;
+}
+.promo-applied-code {
+  font-family: var(--font-display);
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  color: var(--accent);
+}
+
 /* ── RESPONSIVE ────────────────────────────────── */
 @media (max-width: 768px) {
   .checkout-grid { grid-template-columns: 1fr; }
   .checkout-summary { position: static; }
   .payment-option { grid-template-columns: auto 1fr auto; padding: 1rem; }
   .instapay-qr { width: 80px; height: 80px; }
+  .checkout-submit-desktop { display: none; }
+  .checkout-submit-mobile { display: block; }
 }
 </style>
-
-
-
 {% endblock %}

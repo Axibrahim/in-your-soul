@@ -136,3 +136,56 @@ def send_reset_email(to_email: str, token: str) -> bool:
     except Exception as e:
         print(f"[RESEND ERROR] Failed to send reset email: {e}", file=sys.stderr, flush=True)
         return False
+
+
+ORDER_STATUS_MESSAGES = {
+    'cancelled': {
+        'subject': 'Your IN YOUR SOUL order was cancelled',
+        'body': (
+            "Your order {order_number} has been cancelled.\n\n"
+            "If you were charged and weren't expecting this, reply to this email "
+            "and we'll sort it out right away."
+        ),
+    },
+    'shipped': {
+        'subject': 'Your IN YOUR SOUL order is on its way',
+        'body': (
+            "Good news — order {order_number} has shipped and is on its way to you.\n\n"
+            "You'll get another email the moment it's delivered."
+        ),
+    },
+    'delivered': {
+        'subject': 'Your IN YOUR SOUL order has arrived',
+        'body': (
+            "Order {order_number} has been marked as delivered.\n\n"
+            "Hope you love it. Unworn items can be returned within 14 days if anything's off."
+        ),
+    },
+}
+
+
+def send_order_status_email(to_email: str, order_number: str, status: str) -> bool:
+    template = ORDER_STATUS_MESSAGES.get(status)
+    if not template:
+        return False  # no email for pending/confirmed — only meaningful status changes notify
+
+    body = template['body'].format(order_number=order_number)
+
+    resend.api_key = os.environ.get('RESEND_API_KEY')
+    from_email = os.environ.get('RESEND_FROM_EMAIL')
+
+    if not resend.api_key or not from_email:
+        print("[RESEND ERROR] Missing API Key or From Email environment variables.", file=sys.stderr, flush=True)
+        return False
+
+    try:
+        resend.Emails.send({
+            "from": from_email,
+            "to": [to_email],
+            "subject": template['subject'],
+            "text": body,
+        })
+        return True
+    except Exception as e:
+        print(f"[RESEND ERROR] Failed to send order status email: {e}", file=sys.stderr, flush=True)
+        return False

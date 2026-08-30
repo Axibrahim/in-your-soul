@@ -160,13 +160,17 @@ def cart_count():
     return jsonify({'count': count})
 
 
+
 @cart_bp.route('/apply-discount', methods=['POST'])
 @limiter.limit("15 per minute")       # prevents brute-forcing codes
 def apply_discount():
     code = request.form.get('code', '').strip().upper()
+    next_page = request.form.get('next', 'cart')
+    redirect_target = 'cart.checkout' if next_page == 'checkout' else 'cart.view_cart'
+
     if not code:
         flash('Please enter a discount code.', 'danger')
-        return redirect(url_for('cart.view_cart'))
+        return redirect(url_for(redirect_target))
 
     cart = get_cart()
     _, subtotal = compute_subtotal(cart)
@@ -174,24 +178,26 @@ def apply_discount():
     discount = DiscountCode.query.filter_by(code=code).first()
     if not discount:
         flash('Invalid discount code.', 'danger')
-        return redirect(url_for('cart.view_cart'))
+        return redirect(url_for(redirect_target))
 
     valid, error = discount.is_valid(subtotal)
     if not valid:
         flash(error, 'danger')
-        return redirect(url_for('cart.view_cart'))
+        return redirect(url_for(redirect_target))
 
     session['discount_code'] = discount.code
     session.modified = True
     flash(f'Code "{discount.code}" applied.', 'success')
-    return redirect(url_for('cart.view_cart'))
+    return redirect(url_for(redirect_target))
 
 
 @cart_bp.route('/remove-discount', methods=['POST'])
 def remove_discount():
+    next_page = request.form.get('next', 'cart')
+    redirect_target = 'cart.checkout' if next_page == 'checkout' else 'cart.view_cart'
     session.pop('discount_code', None)
     session.modified = True
-    return redirect(url_for('cart.view_cart'))
+    return redirect(url_for(redirect_target))
 
 
 @cart_bp.route('/checkout', methods=['GET', 'POST'])
