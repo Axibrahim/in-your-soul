@@ -169,8 +169,8 @@ def send_order_status_email(
     except Exception:
         path = f"/track-order/{order_id}"
 
-    # Strip https:// because the Resend template appends it in the href
-    full_link = f"{base_url}{path}".replace("https://", "").replace("http://", "")
+    # Keep the full valid URL with protocol intact
+    full_link = f"{base_url}{path}"
     
     resend.api_key = os.environ.get('RESEND_API_KEY')
     from_email = os.environ.get('RESEND_FROM_EMAIL')
