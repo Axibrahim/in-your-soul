@@ -66,6 +66,7 @@ def _resend_send_template(
         )
         return False
 
+
 def send_verification_email(to_email: str, token: str, first_name: str = "") -> bool:
     base_url = os.environ.get('BASE_URL', 'https://inyoursoul.store').rstrip('/')
     
@@ -76,19 +77,15 @@ def send_verification_email(to_email: str, token: str, first_name: str = "") -> 
 
     full_link = f"{base_url}{path}"
     
-    # Strip protocol so Resend's 'https://{{verification_url}}' template link doesn't double 'https://'
-    clean_url = full_link.replace('https://', '').replace('http://', '')
-    
-    print(f"[EMAIL DEBUG] Clean Verification URL generated: {clean_url}", file=sys.stderr, flush=True)
+    print(f"[EMAIL DEBUG] Verification URL generated: {full_link}", file=sys.stderr, flush=True)
 
     variables = {
-        "verification_url": clean_url,
+        "verification_url": full_link,
         "first_name": first_name or "Friend"
     }
 
     return _resend_send_template(
         to_email=to_email,
-        subject='Verify your IN YOUR SOUL account',
         template_id='5801c34f-63fb-44fe-9fd5-819d352f24d7',
         variables=variables
     )
@@ -133,82 +130,26 @@ def send_reset_email(to_email: str, token: str) -> bool:
     from_email = os.environ.get('RESEND_FROM_EMAIL')
 
     if not resend.api_key or not from_email:
-        print("[RESEND ERROR] Missing API Key or From Email environment variables.", file=sys.stderr, flush=True)
+        print(
+            "[RESEND ERROR] Missing API Key or From Email environment variables.",
+            file=sys.stderr,
+            flush=True
+        )
         return False
 
     try:
         resend.Emails.send({
             "from": from_email,
             "to": [to_email],
-            "subject": 'Reset your IN YOUR SOUL password',
+            "subject": "Reset your IN YOUR SOUL password",
             "text": body,
         })
         return True
+
     except Exception as e:
-        print(f"[RESEND ERROR] Failed to send reset email: {e}", file=sys.stderr, flush=True)
-        return False
-
-
-ORDER_STATUS_MESSAGES = {
-    'cancelled': {
-        'subject': 'Your IN YOUR SOUL order was cancelled',
-        'body': (
-            "Your order {order_number} has been cancelled.\n\n"
-            "If you were charged and weren't expecting this, reply to this email "
-            "and we'll sort it out right away."
-        ),
-    },
-    'shipped': {
-        'subject': 'Your IN YOUR SOUL order is on its way',
-        'body': (
-            "Good news — order {order_number} has shipped and is on its way to you.\n\n"
-            "You'll get another email the moment it's delivered."
-        ),
-    },
-    'delivered': {
-        'subject': 'Your IN YOUR SOUL order has arrived',
-        'body': (
-            "Order {order_number} has been marked as delivered.\n\n"
-            "Hope you love it. Unworn items can be returned within 14 days if anything's off."
-        ),
-    },
-}
-
-
-def send_order_status_email(
-    to_email: str,
-    order_number: str,
-    status: str,
-    first_name: str = "",
-    estimated_delivery: str = "3–5 business days",
-    order_tracking_url: str = "",
-) -> bool:
-
-    # Only send notifications for meaningful status changes
-    if status not in {"cancelled", "shipped", "delivered"}:
-        return False
-
-    template_id = os.environ.get("RESEND_ORDER_STATUS_TEMPLATE_ID")
-
-    if not template_id:
         print(
-            "[RESEND ERROR] RESEND_ORDER_STATUS_TEMPLATE_ID is not configured.",
+            f"[RESEND ERROR] Failed to send reset email: {e}",
             file=sys.stderr,
-            flush=True,
+            flush=True
         )
         return False
-
-    variables = {
-        "first_name": first_name or "Customer",
-        "order_id": order_number,
-        "order_status": status.upper(),
-        "estimated_delivery": estimated_delivery,
-        "order_tracking_url": order_tracking_url,
-    }
-
-    return _resend_send_template(
-        to_email=to_email,
-        subject="Your IN YOUR SOUL order has been updated",
-        template_id='39d43d95-5733-456e-9c11-a81dd81e5eaa',
-        variables=variables,
-    )
