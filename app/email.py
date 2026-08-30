@@ -30,30 +30,41 @@ def confirm_verify_token(token: str):
         return None
 
 
-def _resend_send_template(to_email: str, subject: str, template_id: str, variables: dict) -> bool:
-    """Helper to send emails using Resend templates."""
+def _resend_send_template(
+    to_email: str,
+    template_id: str,
+    variables: dict
+) -> bool:
+
     resend.api_key = os.environ.get('RESEND_API_KEY')
     from_email = os.environ.get('RESEND_FROM_EMAIL')
 
     if not resend.api_key or not from_email:
-        print("[RESEND ERROR] Missing API Key or From Email environment variables.", file=sys.stderr, flush=True)
+        print(
+            "[RESEND ERROR] Missing API Key or From Email environment variables.",
+            file=sys.stderr,
+            flush=True
+        )
         return False
 
     try:
         resend.Emails.send({
             "from": from_email,
             "to": [to_email],
-            "subject": subject,
             "template": {
                 "id": template_id,
                 "variables": variables,
             },
         })
         return True
-    except Exception as e:
-        print(f"[RESEND ERROR] Failed to send template email: {e}", file=sys.stderr, flush=True)
-        return False
 
+    except Exception as e:
+        print(
+            f"[RESEND ERROR] Failed to send template email: {e}",
+            file=sys.stderr,
+            flush=True
+        )
+        return False
 
 def send_verification_email(to_email: str, token: str, first_name: str = "") -> bool:
     base_url = os.environ.get('BASE_URL', 'https://inyoursoul.store').rstrip('/')
@@ -138,6 +149,30 @@ def send_reset_email(to_email: str, token: str) -> bool:
         return False
 
 
+ORDER_STATUS_MESSAGES = {
+    'cancelled': {
+        'subject': 'Your IN YOUR SOUL order was cancelled',
+        'body': (
+            "Your order {order_number} has been cancelled.\n\n"
+            "If you were charged and weren't expecting this, reply to this email "
+            "and we'll sort it out right away."
+        ),
+    },
+    'shipped': {
+        'subject': 'Your IN YOUR SOUL order is on its way',
+        'body': (
+            "Good news — order {order_number} has shipped and is on its way to you.\n\n"
+            "You'll get another email the moment it's delivered."
+        ),
+    },
+    'delivered': {
+        'subject': 'Your IN YOUR SOUL order has arrived',
+        'body': (
+            "Order {order_number} has been marked as delivered.\n\n"
+            "Hope you love it. Unworn items can be returned within 14 days if anything's off."
+        ),
+    },
+}
 
 
 def send_order_status_email(
