@@ -138,54 +138,42 @@ def send_reset_email(to_email: str, token: str) -> bool:
         return False
 
 
-ORDER_STATUS_MESSAGES = {
-    'cancelled': {
-        'subject': 'Your IN YOUR SOUL order was cancelled',
-        'body': (
-            "Your order {order_number} has been cancelled.\n\n"
-            "If you were charged and weren't expecting this, reply to this email "
-            "and we'll sort it out right away."
-        ),
-    },
-    'shipped': {
-        'subject': 'Your IN YOUR SOUL order is on its way',
-        'body': (
-            "Good news — order {order_number} has shipped and is on its way to you.\n\n"
-            "You'll get another email the moment it's delivered."
-        ),
-    },
-    'delivered': {
-        'subject': 'Your IN YOUR SOUL order has arrived',
-        'body': (
-            "Order {order_number} has been marked as delivered.\n\n"
-            "Hope you love it. Unworn items can be returned within 14 days if anything's off."
-        ),
-    },
-}
 
 
-def send_order_status_email(to_email: str, order_number: str, status: str) -> bool:
-    template = ORDER_STATUS_MESSAGES.get(status)
-    if not template:
-        return False  # no email for pending/confirmed — only meaningful status changes notify
+def send_order_status_email(
+    to_email: str,
+    order_number: str,
+    status: str,
+    first_name: str = "",
+    estimated_delivery: str = "3–5 business days",
+    order_tracking_url: str = "",
+) -> bool:
 
-    body = template['body'].format(order_number=order_number)
-
-    resend.api_key = os.environ.get('RESEND_API_KEY')
-    from_email = os.environ.get('RESEND_FROM_EMAIL')
-
-    if not resend.api_key or not from_email:
-        print("[RESEND ERROR] Missing API Key or From Email environment variables.", file=sys.stderr, flush=True)
+    # Only send notifications for meaningful status changes
+    if status not in {"cancelled", "shipped", "delivered"}:
         return False
 
-    try:
-        resend.Emails.send({
-            "from": from_email,
-            "to": [to_email],
-            "subject": template['subject'],
-            "text": body,
-        })
-        return True
-    except Exception as e:
-        print(f"[RESEND ERROR] Failed to send order status email: {e}", file=sys.stderr, flush=True)
+    template_id = os.environ.get("RESEND_ORDER_STATUS_TEMPLATE_ID")
+
+    if not template_id:
+        print(
+            "[RESEND ERROR] RESEND_ORDER_STATUS_TEMPLATE_ID is not configured.",
+            file=sys.stderr,
+            flush=True,
+        )
         return False
+
+    variables = {
+        "first_name": first_name or "Customer",
+        "order_id": order_number,
+        "order_status": status.upper(),
+        "estimated_delivery": estimated_delivery,
+        "order_tracking_url": order_tracking_url,
+    }
+
+    return _resend_send_template(
+        to_email=to_email,
+        subject="Your IN YOUR SOUL order has been updated",
+        template_id='39d43d95-5733-456e-9c11-a81dd81e5eaa',
+        variables=variables,
+    )
