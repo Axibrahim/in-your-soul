@@ -165,14 +165,7 @@
             <span class="summary-total">{{ "%.0f"|format(grand_total) }} EGP</span>
           </div>
 
-          <button type="submit" class="btn btn--primary btn--full" style="margin-top:1.5rem;">
-            <span>PLACE ORDER →</span>
-          </button>
-          <a href="{{ url_for('cart.view_cart') }}" class="btn btn--ghost btn--full" style="margin-top:0.75rem;">
-            <span>← BACK TO CART</span>
-          </a>
-
-      <!-- PROMO CODE -->
+                <!-- PROMO CODE -->
       <div style="margin-top:1.25rem;">
         {% if discount %}
         <form method="POST" action="{{ url_for('cart.remove_discount') }}" style="display:flex;align-items:center;justify-content:space-between;gap:0.75rem;border:1px solid var(--accent);background:var(--accent-glow);padding:0.75rem;">
@@ -188,6 +181,12 @@
         </form>
         {% endif %}
       </div>
+          <button type="submit" class="btn btn--primary btn--full" style="margin-top:1.5rem;">
+            <span>PLACE ORDER →</span>
+          </button>
+          <a href="{{ url_for('cart.view_cart') }}" class="btn btn--ghost btn--full" style="margin-top:0.75rem;">
+            <span>← BACK TO CART</span>
+          </a>
 
           <!-- REFUND POLICY -->
           <div style="border-top:1px solid var(--border);margin-top:1.5rem;padding-top:1.25rem;">
