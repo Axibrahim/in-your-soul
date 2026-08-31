@@ -74,9 +74,29 @@
             <option value="Other">Other</option>
           </select>
         </div>
-        <div class="field">
+                <div class="field">
           <label>STREET ADDRESS</label>
           <input type="text" name="street" placeholder="123 El Tahrir St." required/>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label>BUILDING NAME/NUMBER</label>
+            <input type="text" name="building" placeholder="e.g. 12 or Al Nour Tower" required/>
+          </div>
+          <div class="field">
+            <label>FLOOR</label>
+            <input type="text" name="floor" placeholder="e.g. 3rd" required/>
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label>APARTMENT <span style="color:var(--muted);">optional</span></label>
+            <input type="text" name="apartment" placeholder="e.g. 5"/>
+          </div>
+          <div class="field">
+            <label>LANDMARK <span style="color:var(--muted);">optional</span></label>
+            <input type="text" name="landmark" placeholder="e.g. next to Metro supermarket" maxlength="100"/>
+          </div>
         </div>
         <div class="field-row">
           <div class="field">
@@ -84,27 +104,10 @@
             <input type="text" name="district" placeholder="District" required/>
           </div>
           <div class="field">
-              <label>BUILDING NAME/NUMBER</label>
-              <input type="text" name="building" placeholder="e.g. 12 or Al Nour Tower" required/>
-          </div>
-          <div class="field">
-            <label>FLOOR</label>
-            <input type="text" name="floor" placeholder="e.g. 3rd" required/>
-          </div>
-          <div class="field-row">
-          <div class="field">
-            <label>APARTMENT <span style="color:var(--muted);">optional</span></label>
-            <input type="text" name="apartment" placeholder="e.g. 5"/>
-          </div>
-          <div class="field">
-            <label>LANDMARK <span style="color:var(--muted);">optional</span></label>
-            <input type="text" name="landmark" placeholder="e.g. next to Metro supermarket"/>
-          </div>
-          </div>
-            <div class="field">
             <label>GOVERNORATE</label>
-              <input type="text" name="governorate" placeholder="Cairo" required/>
+            <input type="text" name="governorate" placeholder="Cairo" required/>
           </div>
+        </div>
         </div>
         <div class="check-field">
           <input type="checkbox" name="is_default" id="is_default"/>
