@@ -129,3 +129,9 @@ def set_default_address(addr_id):
     addr.is_default = True
     db.session.commit()
     return jsonify({'success': True})
+
+@account_bp.route('/track-order/<order_number>')
+@login_required
+def track_order(order_number):
+    order = Order.query.filter_by(order_number=order_number, user_id=current_user.id).first_or_404()
+    return redirect(url_for('account.order_detail', order_id=order.id))

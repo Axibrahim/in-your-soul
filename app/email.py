@@ -165,7 +165,7 @@ def send_order_status_email(
     base_url = os.environ.get('BASE_URL', 'https://inyoursoul.store').rstrip('/')
     
     try:
-        path = url_for('orders.track_order', order_id=order_id)
+        path = url_for('account.track_order', order_number=order_id)
     except Exception:
         path = f"/track-order/{order_id}"
 
