@@ -344,7 +344,7 @@ def update_order_status(order_id):
         flash(f'Order status updated to {new_status}.', 'success')
 
         # Only email on a genuine change into a customer-meaningful status
-        if new_status != old_status and new_status in ('shipped', 'delivered', 'cancelled'):
+        if new_status != old_status and new_status in ('shipped', 'delivered', 'cancelled', 'confirmed'):
             customer = User.query.get(order.user_id)
             if customer and customer.email:
                 send_order_status_email(customer.email, order.order_number, new_status, first_name=customer.first_name)
