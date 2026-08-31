@@ -347,7 +347,7 @@ def update_order_status(order_id):
         if new_status != old_status and new_status in ('shipped', 'delivered', 'cancelled'):
             customer = User.query.get(order.user_id)
             if customer and customer.email:
-                send_order_status_email(customer.email, order.order_number, new_status)
+                send_order_status_email(customer.email, order.order_number, new_status, first_name=customer.first_name)
     return redirect(url_for('admin.order_detail', order_id=order_id))
 
 @admin_bp.route('/categories')
