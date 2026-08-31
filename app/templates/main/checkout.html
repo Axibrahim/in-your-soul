@@ -10,7 +10,7 @@
     <div class="checkout-grid">
 
       <!-- LEFT COLUMN -->
-      <form method="POST" action="{{ url_for('cart.checkout') }}" class="checkout-left" id="checkout-form"></form>
+      <form method="POST" action="{{ url_for('cart.checkout') }}" class="checkout-left" id="checkout-form">
       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
 
         <!-- SHIPPING ADDRESS -->
