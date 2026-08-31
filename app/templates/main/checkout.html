@@ -10,8 +10,8 @@
     <div class="checkout-grid">
 
       <!-- LEFT COLUMN -->
-      <form method="POST" action="{{ url_for('cart.checkout') }}" class="checkout-left">
-        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+      <form method="POST" action="{{ url_for('cart.checkout') }}" class="checkout-left" id="checkout-form"></form>
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
 
         <!-- SHIPPING ADDRESS -->
         <div class="checkout-card">
@@ -121,7 +121,7 @@
                       src="{{ url_for('static', filename='images/instapay_qr.jpg') }}"
                       alt="InstaPay QR Code"
                       class="instapay-qr"
-                      onerror="this.style.display='none'"
+                      data-hide-on-error
                     />
                     <div class="instapay-info">
                       <div class="instapay-id-label">INSTAPAY ID</div>
@@ -198,8 +198,8 @@
           {% endif %}
         </div>
 
-        <button type="submit" form="" class="btn btn--primary btn--full checkout-submit-desktop" style="margin-top:1.5rem;" onclick="document.querySelector('.checkout-left').requestSubmit(); return false;">
-          <span>PLACE ORDER →</span>
+        <button type="submit" form="checkout-form" class="btn btn--primary btn--full checkout-submit-desktop" style="margin-top:1.5rem;"></button>
+        <span>PLACE ORDER →</span>
         </button>
         <a href="{{ url_for('cart.view_cart') }}" class="btn btn--ghost btn--full" style="margin-top:0.75rem;">
           <span>← BACK TO CART</span>

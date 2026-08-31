@@ -488,3 +488,19 @@ if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
   document.body.appendChild(scanLine);
   scanSweep();
 }
+
+// ── CONFIRM-BEFORE-SUBMIT (delete buttons, etc.) ───────────────
+document.querySelectorAll('form[data-confirm]').forEach((form) => {
+  form.addEventListener('submit', (e) => {
+    if (!confirm(form.dataset.confirm)) {
+      e.preventDefault();
+    }
+  });
+});
+
+// ── HIDE IMAGE IF IT FAILS TO LOAD ─────────────────────────────
+document.querySelectorAll('img[data-hide-on-error]').forEach((img) => {
+  img.addEventListener('error', () => {
+    img.style.display = 'none';
+  });
+});
