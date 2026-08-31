@@ -173,7 +173,7 @@ def send_order_status_email(
     full_link = f"{base_url}{path}"
     
     resend.api_key = os.environ.get('RESEND_API_KEY')
-    from_email = os.environ.get('RESEND_FROM_EMAIL')
+    from_email = os.environ.get('RESEND_ORDERS_FROM_EMAIL')
 
     if not resend.api_key or not from_email:
         print("[RESEND ERROR] Missing API Key or From Email.", file=sys.stderr, flush=True)
