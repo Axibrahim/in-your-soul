@@ -76,8 +76,9 @@
       <div style="font-family:var(--font-display);font-size:0.65rem;letter-spacing:0.2em;color:var(--text-dim);margin-bottom:1rem;">SHIPPING ADDRESS</div>
       <div style="font-size:0.9rem;line-height:1.8;">
         {{ addr.get('street','') }}<br/>
-        {{ addr.get('city','') }}, {{ addr.get('governorate','') }}
-        {% if addr.get('postal_code') %}, {{ addr.get('postal_code') }}{% endif %}
+        Building {{ addr.get('building','') }}, Floor {{ addr.get('floor','') }}{% if addr.get('apartment') %}, Apt {{ addr.get('apartment') }}{% endif %}<br/>
+        {{ addr.get('district','') }}, {{ addr.get('governorate','') }}
+        {% if addr.get('landmark') %}<br/><span style="color:var(--muted);">Near {{ addr.get('landmark') }}</span>{% endif %}
       </div>
     </div>
     {% endif %}

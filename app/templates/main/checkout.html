@@ -35,8 +35,7 @@
               <input type="radio" name="address_id" value="{{ addr.id }}" {% if addr.is_default %}checked{% endif %}/>
               <div class="addr-option-text">
                 <div class="addr-label">{{ (addr.label or 'Home').upper() }}</div>
-                <div class="addr-detail">{{ addr.street }}, {{ addr.district }}, {{ addr.governorate }}</div>
-              </div>
+                <div class="addr-detail">{{ addr.street }}, Bldg {{ addr.building }}, Fl {{ addr.floor }}{% if addr.apartment %}/{{ addr.apartment }}{% endif %} — {{ addr.district }}, {{ addr.governorate }}</div>              </div>
             </label>
             {% endfor %}
           </div>
@@ -44,18 +43,39 @@
           <div id="new-address-section" style="display:none;">
           {% endif %}
           <div class="field-row">
+                     <div class="field">
+            <label>STREET ADDRESS</label>
+            <input type="text" name="street" placeholder="123 Street Name"/>
+          </div>
+          <div class="field-row">
             <div class="field">
-              <label>STREET ADDRESS</label>
-              <input type="text" name="street" placeholder="123 Street Name"/>
+              <label>BUILDING NAME/NUMBER</label>
+              <input type="text" name="building" placeholder="e.g. 12"/>
             </div>
+            <div class="field">
+              <label>FLOOR</label>
+              <input type="text" name="floor" placeholder="e.g. 3rd"/>
+            </div>
+          </div>
+          <div class="field-row">
+            <div class="field">
+              <label>APARTMENT <span style="color:var(--muted);">optional</span></label>
+              <input type="text" name="apartment" placeholder="e.g. 5"/>
+            </div>
+            <div class="field">
+              <label>LANDMARK <span style="color:var(--muted);">optional</span></label>
+              <input type="text" name="landmark" placeholder="e.g. next to Metro supermarket"/>
+            </div>
+          </div>
+          <div class="field-row">
             <div class="field">
               <label>DISTRICT</label>
               <input type="text" name="district" placeholder="e.g. GIZA"/>
             </div>
-          </div>
-          <div class="field">
-            <label>GOVERNORATE</label>
-            <input type="text" name="governorate" placeholder="Governorate"/>
+            <div class="field">
+              <label>GOVERNORATE</label>
+              <input type="text" name="governorate" placeholder="Governorate"/>
+            </div>
           </div>
           {% if addresses %}
           </div>

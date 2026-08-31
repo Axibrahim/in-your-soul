@@ -43,6 +43,10 @@ class Address(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     label = db.Column(db.String(50), default='Home')
     street = db.Column(db.String(200), nullable=False)
+    building = db.Column(db.String(50), nullable=False)
+    floor = db.Column(db.String(20), nullable=False)
+    apartment = db.Column(db.String(20), nullable=True)
+    landmark = db.Column(db.String(150), nullable=True)
     district = db.Column(db.String(100), nullable=False)
     governorate = db.Column(db.String(100), nullable=False)
     is_default = db.Column(db.Boolean, default=False)
@@ -50,7 +54,6 @@ class Address(db.Model):
 
     def __repr__(self):
         return f'<Address {self.label} - {self.governorate}>'
-
 
 class Category(db.Model):
     __tablename__ = 'categories'

@@ -61,7 +61,7 @@ def login():
             login_user(user, remember=bool(remember))
             
             next_page = _safe_next_url(request.args.get('next'))
-            flash('Welcome back.', 'success')
+            flash(f'Welcome back, {user.first_name}.', 'success')
             return redirect(next_page or url_for('main.index'))
         else:
             flash('Invalid username or password.', 'danger')

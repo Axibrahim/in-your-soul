@@ -84,12 +84,16 @@ def addresses():
 def add_address():
     label = request.form.get('label', 'Home').strip()
     street = request.form.get('street', '').strip()
+    building = request.form.get('building', '').strip()
+    floor = request.form.get('floor', '').strip()
+    apartment = request.form.get('apartment', '').strip()
+    landmark = request.form.get('landmark', '').strip()
     district = request.form.get('district', '').strip()
     governorate = request.form.get('governorate', '').strip()
     is_default = request.form.get('is_default') == 'on'
 
-    if not all([street, district, governorate]):
-        flash('Street, district and governorate are required.', 'danger')
+    if not all([street, building, floor, district, governorate]):
+        flash('Street, building, floor, district and governorate are required.', 'danger')
         return redirect(url_for('account.addresses'))
 
     if is_default:
@@ -100,6 +104,10 @@ def add_address():
         user_id=current_user.id,
         label=label,
         street=street,
+        building=building,
+        floor=floor,
+        apartment=apartment or None,
+        landmark=landmark or None,
         district=district,
         governorate=governorate,
         is_default=is_default
@@ -108,7 +116,6 @@ def add_address():
     db.session.commit()
     flash('Address added.', 'success')
     return redirect(url_for('account.addresses'))
-
 
 @account_bp.route('/addresses/<int:addr_id>/delete', methods=['POST'])
 @login_required

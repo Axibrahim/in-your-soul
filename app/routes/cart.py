@@ -232,22 +232,37 @@ def checkout():
         address_id = request.form.get('address_id', type=int)
         notes = request.form.get('notes', '').strip()
 
-        # Manual address fields
+               # Manual address fields
         street = request.form.get('street', '').strip()
+        building = request.form.get('building', '').strip()
+        floor = request.form.get('floor', '').strip()
+        apartment = request.form.get('apartment', '').strip()
+        landmark = request.form.get('landmark', '').strip()
         district = request.form.get('district', '').strip()
         governorate = request.form.get('governorate', '').strip()
+
+        used_new_address = False
 
         if address_id:
             addr = Address.query.filter_by(id=address_id, user_id=current_user.id).first()
             if addr:
-                addr_data = {'street': addr.street, 'district': addr.district, 'governorate': addr.governorate}
+                addr_data = {
+                    'street': addr.street, 'building': addr.building, 'floor': addr.floor,
+                    'apartment': addr.apartment, 'landmark': addr.landmark,
+                    'district': addr.district, 'governorate': addr.governorate,
+                }
             else:
                 flash('Invalid address.', 'danger')
                 return redirect(url_for('cart.checkout'))
-        elif street and district and governorate:
-            addr_data = {'street': street, 'district': district, 'governorate': governorate}
+        elif all([street, building, floor, district, governorate]):
+            addr_data = {
+                'street': street, 'building': building, 'floor': floor,
+                'apartment': apartment or None, 'landmark': landmark or None,
+                'district': district, 'governorate': governorate,
+            }
+            used_new_address = True
         else:
-            flash('Please provide a shipping address.', 'danger')
+            flash('Please provide a complete shipping address (street, building and floor are required).', 'danger')
             return redirect(url_for('cart.checkout'))
 
         # Validate stock
@@ -280,6 +295,24 @@ def checkout():
 
         db.session.add(order)
         db.session.flush()
+
+        
+        # Auto-save a manually-typed address to the customer's address book,
+        # so they don't have to retype it next time.
+        if used_new_address:
+            saved_addr = Address(
+                user_id=current_user.id,
+                label='Home',
+                street=addr_data['street'],
+                building=addr_data['building'],
+                floor=addr_data['floor'],
+                apartment=addr_data.get('apartment'),
+                landmark=addr_data.get('landmark'),
+                district=addr_data['district'],
+                governorate=addr_data['governorate'],
+                is_default=not current_user.addresses,  # first address becomes default automatically
+            )
+            db.session.add(saved_addr)
 
         # Create order items and reduce stock
         for item_data in items:

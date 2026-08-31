@@ -31,10 +31,11 @@
               </div>
               <div style="font-size:0.9rem;color:var(--text-dim);line-height:1.7;">
                 {{ addr.street }}<br/>
-                {{ addr.district }}, {{ addr.governorate }}{% if addr.postal_code %}, {{ addr.postal_code }}{% endif %}
+                Building {{ addr.building }}, Floor {{ addr.floor }}{% if addr.apartment %}, Apt {{ addr.apartment }}{% endif %}<br/>
+                {{ addr.district }}, {{ addr.governorate }}
+                {% if addr.landmark %}<br/><span style="color:var(--muted);">Near {{ addr.landmark }}</span>{% endif %}
               </div>
             </div>
-
             <div style="display:flex;gap:0.5rem;flex-wrap:wrap;">
               {% if not addr.is_default %}
               <button 
@@ -83,8 +84,26 @@
             <input type="text" name="district" placeholder="District" required/>
           </div>
           <div class="field">
+              <label>BUILDING NAME/NUMBER</label>
+              <input type="text" name="building" placeholder="e.g. 12 or Al Nour Tower" required/>
+          </div>
+          <div class="field">
+            <label>FLOOR</label>
+            <input type="text" name="floor" placeholder="e.g. 3rd" required/>
+          </div>
+          <div class="field-row">
+          <div class="field">
+            <label>APARTMENT <span style="color:var(--muted);">optional</span></label>
+            <input type="text" name="apartment" placeholder="e.g. 5"/>
+          </div>
+          <div class="field">
+            <label>LANDMARK <span style="color:var(--muted);">optional</span></label>
+            <input type="text" name="landmark" placeholder="e.g. next to Metro supermarket"/>
+          </div>
+          </div>
+            <div class="field">
             <label>GOVERNORATE</label>
-            <input type="text" name="governorate" placeholder="Cairo" required/>
+              <input type="text" name="governorate" placeholder="Cairo" required/>
           </div>
         </div>
         <div class="check-field">
