@@ -45,11 +45,11 @@ def login():
     if current_user.is_authenticated:
         return redirect(url_for('main.index'))
     if request.method == 'POST':
-        username = request.form.get('username', '').strip().lower()
+        email = request.form.get('email', '').strip().lower()
         password = request.form.get('password', '')
         remember = request.form.get('remember', False)
 
-        user = User.query.filter(db.func.lower(User.username) == username).first()
+        user = User.query.filter(db.func.lower(User.email) == email).first()
         if user and user.check_password(password):
             if not user.email_verified:
                 session['pending_verify_user_id'] = user.id
