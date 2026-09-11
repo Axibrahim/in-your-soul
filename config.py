@@ -30,8 +30,8 @@ class Config:
     # transaction-mode pooler (port 6543), which doesn't support prepared
     # statements. Harmless to leave set if using the session-mode pooler.
     SQLALCHEMY_ENGINE_OPTIONS = {
-        "pool_size": 2,
-        "max_overflow": 1,
+        "pool_size": 1,
+        "max_overflow": 0,
         "pool_pre_ping": True,
         "pool_recycle": 280,
         "connect_args": {"prepare_threshold": None},
