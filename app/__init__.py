@@ -6,6 +6,7 @@ from flask_bcrypt import Bcrypt
 from flask_wtf.csrf import CSRFProtect
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
+from flask_caching import Cache
 from config import config
 import os
 
@@ -13,7 +14,13 @@ db = SQLAlchemy()
 login_manager = LoginManager()
 bcrypt = Bcrypt()
 csrf = CSRFProtect()
-limiter = Limiter(key_func=get_remote_address, default_limits=["200 per day", "50 per hour"])
+limiter = Limiter(key_func=get_remote_address, default_limits=["1000 per hour"])
+# SimpleCache = in-process memory, no Redis/new infra needed. Note: with multiple
+# Gunicorn worker processes, each worker keeps its own separate cache copy (not
+# shared), so cache hit rate is somewhat lower than with a shared backend like
+# Redis — but it still massively cuts DB round-trips per worker under load,
+# which is exactly what's needed given the 5-connection Supabase pooler cap.
+cache = Cache(config={"CACHE_TYPE": "SimpleCache", "CACHE_DEFAULT_TIMEOUT": 30})
 
 def create_app(config_name='default'):
     app = Flask(__name__)
@@ -38,6 +45,7 @@ def create_app(config_name='default'):
     login_manager.init_app(app)
     bcrypt.init_app(app)
     csrf.init_app(app)
+    cache.init_app(app)
 
     
 

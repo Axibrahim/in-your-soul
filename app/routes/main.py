@@ -1,31 +1,50 @@
 from flask import Blueprint, render_template, request, jsonify, session
 from app.models import Product, Category, db
-from datetime import datetime
+from app import cache
+from datetime import datetime, timedelta
 
 main_bp = Blueprint('main', __name__)
 
+# In-memory timestamp guard so cancel_expired_orders() runs at most once every
+# 60s per worker process, instead of on every single hit to '/'. It was
+# previously running (and writing to the DB) on every homepage request, which
+# under load competes for the same handful of Supabase pooler connections as
+# every other query on the site for no real benefit — orders don't need to be
+# cancelled within milliseconds of expiring, once a minute is plenty.
+_last_expired_check = {"at": None}
 
+
+# NOTE: we deliberately cache only these data-fetching helpers (via
+# cache.memoize), never the rendered response itself (cache.cached). The
+# pages below embed session-specific content in the shared base template —
+# the CSRF token meta tag, cart count, login state — so caching a fully
+# rendered HTML response would leak one visitor's session data (including
+# their CSRF token) to every other visitor for the cache's lifetime, breaking
+# their form submissions and leaking session state. Caching the DB query
+# results instead gets the same reduction in Supabase load with none of that
+# risk, since render_template() still runs fresh on every request using the
+# current visitor's own session.
+
+@cache.memoize(timeout=30)
+def _get_homepage_products():
+    featured = Product.query.filter_by(is_featured=True, is_active=True).limit(6).all()
+    all_products = Product.query.filter_by(is_active=True).order_by(Product.created_at.desc()).limit(12).all()
+    categories = Category.query.all()
+    return featured, all_products, categories
 
 
 @main_bp.route('/')
 def index():
-    cancel_expired_orders()  # Cancel expired orders before rendering the homepage
-    featured = Product.query.filter_by(is_featured=True, is_active=True).limit(6).all()
-    all_products = Product.query.filter_by(is_active=True).order_by(Product.created_at.desc()).limit(12).all()
-    categories = Category.query.all()
+    _maybe_cancel_expired_orders()
+    featured, all_products, categories = _get_homepage_products()
     return render_template('main/index.html',
                            featured=featured,
                            products=all_products,
                            categories=categories)
 
 
-@main_bp.route('/shop')
-def shop():
-    page = request.args.get('page', 1, type=int)
-    category_slug = request.args.get('category', None)
-    sort = request.args.get('sort', 'new')
-    search = request.args.get('q', None)
-
+@cache.memoize(timeout=30)
+def _get_shop_products(page, category_slug, sort, search):
     query = Product.query.filter_by(is_active=True)
 
     if category_slug:
@@ -45,6 +64,17 @@ def shop():
 
     products = query.paginate(page=page, per_page=12, error_out=False)
     categories = Category.query.all()
+    return products, categories
+
+
+@main_bp.route('/shop')
+def shop():
+    page = request.args.get('page', 1, type=int)
+    category_slug = request.args.get('category', None)
+    sort = request.args.get('sort', 'new')
+    search = request.args.get('q', None)
+
+    products, categories = _get_shop_products(page, category_slug, sort, search)
 
     return render_template('main/shop.html',
                            products=products,
@@ -54,13 +84,19 @@ def shop():
                            search=search)
 
 
-@main_bp.route('/product/<int:product_id>')
-def product_detail(product_id):
+@cache.memoize(timeout=30)
+def _get_product_detail(product_id):
     product = Product.query.get_or_404(product_id)
     related = Product.query.filter_by(
         category_id=product.category_id,
         is_active=True
     ).filter(Product.id != product_id).limit(4).all()
+    return product, related
+
+
+@main_bp.route('/product/<int:product_id>')
+def product_detail(product_id):
+    product, related = _get_product_detail(product_id)
     return render_template('main/product_detail.html', product=product, related=related)
 
 
@@ -70,6 +106,7 @@ def about():
 
 
 @main_bp.route('/api/products')
+@cache.cached(timeout=30)  # pure JSON, no session/CSRF content — safe to cache the full response
 def api_products():
     products = Product.query.filter_by(is_active=True).all()
     return jsonify([{
@@ -80,6 +117,15 @@ def api_products():
         'stock': p.get_total_stock()
     } for p in products])
 
+
+
+def _maybe_cancel_expired_orders():
+    now = datetime.utcnow()
+    last = _last_expired_check["at"]
+    if last is not None and now - last < timedelta(seconds=60):
+        return
+    _last_expired_check["at"] = now
+    cancel_expired_orders()
 
 
 def cancel_expired_orders():
