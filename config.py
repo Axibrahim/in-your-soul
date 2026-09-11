@@ -21,6 +21,22 @@ class Config:
         database_url or f"sqlite:///{os.path.join(basedir, 'freks.db')}"
     )
 
+    # Caps how many DB connections each Gunicorn worker can open. Supabase's
+    # pooler enforces a hard connection ceiling — without this, SQLAlchemy's
+    # defaults (pool_size=5, max_overflow=10 = 15 per worker) multiply across
+    # every worker process and blow past that ceiling under real load.
+    # 4 workers * (2 + 1) = 12 connections, safely under a 15-connection cap.
+    # prepare_threshold=None is required when DATABASE_URL points at the
+    # transaction-mode pooler (port 6543), which doesn't support prepared
+    # statements. Harmless to leave set if using the session-mode pooler.
+    SQLALCHEMY_ENGINE_OPTIONS = {
+        "pool_size": 2,
+        "max_overflow": 1,
+        "pool_pre_ping": True,
+        "pool_recycle": 280,
+        "connect_args": {"prepare_threshold": None},
+    }
+
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     UPLOAD_FOLDER = os.path.join(basedir, "app", "static", "images", "products")
     MAX_CONTENT_LENGTH = 16 * 1024 * 1024
