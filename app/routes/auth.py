@@ -203,8 +203,6 @@ def check_email():
 
 @auth_bp.route('/verify-email/<token>')
 def verify_email(token):
-    print(f"[VERIFY DEBUG] Endpoint hit with token: {token}", file=sys.stderr, flush=True)
-
     email = confirm_verify_token(token)
     if not email:
         print("[VERIFY DEBUG] Token decoding failed or token expired.", file=sys.stderr, flush=True)
