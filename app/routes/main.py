@@ -2,6 +2,7 @@ from flask import Blueprint, render_template, request, jsonify, session
 from app.models import Product, Category, db
 from app import cache
 from datetime import datetime, timedelta
+from sqlalchemy.orm import selectinload, joinedload
 
 main_bp = Blueprint('main', __name__)
 
@@ -24,11 +25,17 @@ _last_expired_check = {"at": None}
 # results instead gets the same reduction in Supabase load with none of that
 # risk, since render_template() still runs fresh on every request using the
 # current visitor's own session.
+#
+# IMPORTANT: any relationship a template accesses on a cached object (e.g.
+# product.variants via get_total_stock(), product.category) must be
+# eager-loaded here with selectinload/joinedload. Once these objects are
+# cached, their original DB session is gone — a lazy-load attempt later
+# raises DetachedInstanceError instead of quietly querying.
 
 @cache.memoize(timeout=30)
 def _get_homepage_products():
-    featured = Product.query.filter_by(is_featured=True, is_active=True).limit(6).all()
-    all_products = Product.query.filter_by(is_active=True).order_by(Product.created_at.desc()).limit(12).all()
+    featured = Product.query.options(selectinload(Product.variants)).filter_by(is_featured=True, is_active=True).limit(6).all()
+    all_products = Product.query.options(selectinload(Product.variants)).filter_by(is_active=True).order_by(Product.created_at.desc()).limit(12).all()
     categories = Category.query.all()
     return featured, all_products, categories
 
@@ -45,7 +52,7 @@ def index():
 
 @cache.memoize(timeout=30)
 def _get_shop_products(page, category_slug, sort, search):
-    query = Product.query.filter_by(is_active=True)
+    query = Product.query.options(selectinload(Product.variants)).filter_by(is_active=True)
 
     if category_slug:
         cat = Category.query.filter_by(slug=category_slug).first()
@@ -86,7 +93,9 @@ def shop():
 
 @cache.memoize(timeout=30)
 def _get_product_detail(product_id):
-    product = Product.query.get_or_404(product_id)
+    product = Product.query.options(
+        selectinload(Product.variants), joinedload(Product.category)
+    ).filter_by(id=product_id).first_or_404()
     related = Product.query.filter_by(
         category_id=product.category_id,
         is_active=True
